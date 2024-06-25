@@ -1,0 +1,45 @@
+@model FileDropZone
+
+<div class="container">
+    <h1>Upload Files</h1>
+    <form action="/FileUpload/Upload" method="post" class="dropzone" id="dropzoneForm"  enctype="multipart/form-data">
+        <div class="fallback">
+            <input type="file" name="file" />
+            <input type="submit" value="Upload!">
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+<script>
+    Dropzone.options.dropzoneForm = {
+        addRemoveLinks: true,
+        paramName: "files", 
+
+        init: function () {
+            var myDropzone = this;
+            $.getJSON('./?handler=ListFolderContents').done(function (data) {
+
+                if (data!== null && data.length > 0) {
+
+                    $.each(data, function (index, item) {
+                        var mockFile = {
+                            name: item.name,
+                            size: item.fileSize,
+                            filePath: item.filePath
+                        };
+
+                        myDropzone.emit("addedfile", mockFile);
+
+                        myDropzone.emit("thumbnail", mockFile, item.filePath);
+
+                        myDropzone.emit("complete", mockFile);
+
+                    });
+                }
+            });
+        }
+    };
+</script>s
+}
+

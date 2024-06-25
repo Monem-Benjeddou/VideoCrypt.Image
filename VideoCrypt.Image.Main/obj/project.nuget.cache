@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "dgSpecHash": "T3oDQBSTYEz2j1sqxXj0l5boVpfGGmbFdm9Yr/2HKixrO/4CY1+qesjRAoQg2+u1sHC/wrGNRzohMS7LiRpyig==",
+  "success": true,
+  "projectFilePath": "/Users/macbook/RiderProjects/VideoCrypt.Image/VideoCrypt.Image.Main/VideoCrypt.Image.Main.csproj",
+  "expectedPackageFiles": [
+    "/Users/macbook/.nuget/packages/communitytoolkit.highperformance/8.2.2/communitytoolkit.highperformance.8.2.2.nupkg.sha512",
+    "/Users/macbook/.nuget/packages/htmlagilitypack/1.11.50/htmlagilitypack.1.11.50.nupkg.sha512",
+    "/Users/macbook/.nuget/packages/hydro/0.14.2/hydro.0.14.2.nupkg.sha512",
+    "/Users/macbook/.nuget/packages/microsoft.extensions.dependencyinjection/8.0.0/microsoft.extensions.dependencyinjection.8.0.0.nupkg.sha512",
+    "/Users/macbook/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/8.0.0/microsoft.extensions.dependencyinjection.abstractions.8.0.0.nupkg.sha512",
+    "/Users/macbook/.nuget/packages/microsoft.extensions.logging/8.0.0/microsoft.extensions.logging.8.0.0.nupkg.sha512",
+    "/Users/macbook/.nuget/packages/microsoft.extensions.logging.abstractions/8.0.0/microsoft.extensions.logging.abstractions.8.0.0.nupkg.sha512",
+    "/Users/macbook/.nuget/packages/microsoft.extensions.options/8.0.0/microsoft.extensions.options.8.0.0.nupkg.sha512",
+    "/Users/macbook/.nuget/packages/microsoft.extensions.primitives/8.0.0/microsoft.extensions.primitives.8.0.0.nupkg.sha512",
+    "/Users/macbook/.nuget/packages/minio/6.0.2/minio.6.0.2.nupkg.sha512",
+    "/Users/macbook/.nuget/packages/newtonsoft.json/13.0.3/newtonsoft.json.13.0.3.nupkg.sha512",
+    "/Users/macbook/.nuget/packages/system.io.hashing/8.0.0/system.io.hashing.8.0.0.nupkg.sha512",
+    "/Users/macbook/.nuget/packages/system.reactive/6.0.0/system.reactive.6.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}
