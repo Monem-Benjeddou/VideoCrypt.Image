@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("VideoCrypt.Image.Main")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4e2874b58b97115a4a20e7c38377bdc36abb31ed")]
 [assembly: System.Reflection.AssemblyProductAttribute("VideoCrypt.Image.Main")]
 [assembly: System.Reflection.AssemblyTitleAttribute("VideoCrypt.Image.Main")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

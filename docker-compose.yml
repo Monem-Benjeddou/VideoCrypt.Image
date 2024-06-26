@@ -1,0 +1,9 @@
+services:
+  videocrypt:
+    build:
+      context: ./VideoCrypt.Image.Main  # Path to the directory containing Dockerfile
+      dockerfile: ../VideoCrypt.Image.Main/Dockerfile  # Relative path from docker-compose.yml to Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development

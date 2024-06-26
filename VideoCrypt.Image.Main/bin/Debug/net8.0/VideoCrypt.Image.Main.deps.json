@@ -8,11 +8,32 @@
     ".NETCoreApp,Version=v8.0": {
       "VideoCrypt.Image.Main/1.0.0": {
         "dependencies": {
+          "AWSSDK.Core": "3.7.302.3",
+          "AWSSDK.S3": "3.7.305.19",
           "Hydro": "0.14.2",
           "Minio": "6.0.2"
         },
         "runtime": {
           "VideoCrypt.Image.Main.dll": {}
+        }
+      },
+      "AWSSDK.Core/3.7.302.3": {
+        "runtime": {
+          "lib/net8.0/AWSSDK.Core.dll": {
+            "assemblyVersion": "3.3.0.0",
+            "fileVersion": "3.7.302.3"
+          }
+        }
+      },
+      "AWSSDK.S3/3.7.305.19": {
+        "dependencies": {
+          "AWSSDK.Core": "3.7.302.3"
+        },
+        "runtime": {
+          "lib/net8.0/AWSSDK.S3.dll": {
+            "assemblyVersion": "3.3.0.0",
+            "fileVersion": "3.7.305.19"
+          }
         }
       },
       "CommunityToolkit.HighPerformance/8.2.2": {
@@ -114,6 +135,20 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
+    },
+    "AWSSDK.Core/3.7.302.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-GccBN+qzh79g8NOpc/3cE9TLsibr5VTm2PpN/izOE2UBGLx9gzs+/vj4Hzsm59mSN4AtzZqWYYIpZHNi+ZnNHQ==",
+      "path": "awssdk.core/3.7.302.3",
+      "hashPath": "awssdk.core.3.7.302.3.nupkg.sha512"
+    },
+    "AWSSDK.S3/3.7.305.19": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-5tevQrmPJsBk5Wxpszu3Wkkb1GoIx3lg5Rhvhg1cwPEgUCSM0uY9J9Cn4wPLro3aL9f/3LrQsEC047zX96Flbg==",
+      "path": "awssdk.s3/3.7.305.19",
+      "hashPath": "awssdk.s3.3.7.305.19.nupkg.sha512"
     },
     "CommunityToolkit.HighPerformance/8.2.2": {
       "type": "package",

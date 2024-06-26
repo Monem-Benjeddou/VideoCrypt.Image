@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "T3oDQBSTYEz2j1sqxXj0l5boVpfGGmbFdm9Yr/2HKixrO/4CY1+qesjRAoQg2+u1sHC/wrGNRzohMS7LiRpyig==",
+  "dgSpecHash": "OTlw5K2+xI5dGccszj2GbD+E6/JQj/C6HLCYGQaBG9qgaT8Pnm6RAkHuR799TVJF2fCWyqTTy3kutGak/ICO/g==",
   "success": true,
   "projectFilePath": "/Users/macbook/RiderProjects/VideoCrypt.Image/VideoCrypt.Image.Main/VideoCrypt.Image.Main.csproj",
   "expectedPackageFiles": [
+    "/Users/macbook/.nuget/packages/awssdk.core/3.7.302.3/awssdk.core.3.7.302.3.nupkg.sha512",
+    "/Users/macbook/.nuget/packages/awssdk.s3/3.7.305.19/awssdk.s3.3.7.305.19.nupkg.sha512",
     "/Users/macbook/.nuget/packages/communitytoolkit.highperformance/8.2.2/communitytoolkit.highperformance.8.2.2.nupkg.sha512",
     "/Users/macbook/.nuget/packages/htmlagilitypack/1.11.50/htmlagilitypack.1.11.50.nupkg.sha512",
     "/Users/macbook/.nuget/packages/hydro/0.14.2/hydro.0.14.2.nupkg.sha512",
