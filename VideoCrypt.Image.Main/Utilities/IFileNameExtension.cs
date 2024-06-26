@@ -1,3 +1,6 @@
+using System.IO;
+using Microsoft.AspNetCore.Http;
+
 namespace VideoCrypt.Image.Main.Utilities;
 
 public static class IFileNameExtension

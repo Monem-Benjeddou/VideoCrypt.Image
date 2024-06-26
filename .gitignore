@@ -1,7 +1,55 @@
-# Common IntelliJ Platform excludes # User specific **/.idea/**/workspace.xml **/.idea/**/tasks.xml **/.idea/shelf/* **/.idea/dictionaries **/.idea/httpRequests/ # 
-Sensitive or high-churn files **/.idea/**/dataSources/ **/.idea/**/dataSources.ids **/.idea/**/dataSources.xml **/.idea/**/dataSources.local.xml 
-**/.idea/**/sqlDataSources.xml **/.idea/**/dynamic.xml # Rider # Rider auto-generates .iml files, and contentModel.xml **/.idea/**/*.iml **/.idea/**/contentModel.xml 
-**/.idea/**/modules.xml *.suo *.user .vs/ [Bb]in/ [Oo]bj/ _UpgradeReport_Files/ [Pp]ackages/ Thumbs.db Desktop.ini
+# Common IntelliJ Platform excludes
+**/.idea/**/workspace.xml
+**/.idea/**/tasks.xml
+**/.idea/shelf/*
+**/.idea/dictionaries
+**/.idea/httpRequests/
+**/.idea/**/*.iml  # Added Rider specific .iml files
+**/.idea/**/contentModel.xml
+
+# Sensitive or high-churn files (Consider adding specific types based on your project)
+**/.idea/**/dataSources/*
+**/.idea/**/sqlDataSources.xml
+**/.idea/**/dynamic.xml
+
+# General development artifacts
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+msbuild.log
+msbuild.err
+msbuild.wrn
+
+# IDE specific excludes (Choose relevant based on your project)
+.vscode/  # Visual Studio Code
+.fleet/   # Fleet
+.cr/      # Code Rush
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Version control specific
+project.lock.json
+
+# Additional excludes (Consider your project needs)
+*.pyc      # Python bytecode files
+nupkg/     # NuGet packages folder (if applicable)
+node_modules/  # Dependency folder (adjust based on your build system)
+
+# Case-insensitive variations for broader coverage (Optional)
+[Bb]in/
+[Oo]bj/_UpgradeReport_Files/ [Pp]ackages/ Thumbs.db Desktop.ini
 .DS_Store
 *.swp
 *.*~
