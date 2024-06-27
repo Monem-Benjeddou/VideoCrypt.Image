@@ -1,10 +1,5 @@
 using Amazon.S3;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using VideoCrypt.Image.Main.Utils;
 
 namespace VideoCrypt.Image.Main.Controllers
@@ -40,7 +35,7 @@ namespace VideoCrypt.Image.Main.Controllers
                 using (var memoryStream = new MemoryStream())
                 {
                     await file.CopyToAsync(memoryStream);
-                    memoryStream.Seek(0, SeekOrigin.Begin); // Reset the position to the beginning
+                    memoryStream.Seek(0, SeekOrigin.Begin); 
 
                     await S3Utils.UploadFileAsync(fileName, memoryStream, bucketName, file.ContentType);
 

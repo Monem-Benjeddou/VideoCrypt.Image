@@ -22,15 +22,9 @@ var httpClient = new HttpClient(new HttpClientHandler
     ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
 });
 
-// Register MinIO client as a service
-builder.Services.AddMinio(configureClient => configureClient
-    .WithEndpoint(endpoint)
-    .WithSSL(false)
-    .WithCredentials(accessKey, secretKey));
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
