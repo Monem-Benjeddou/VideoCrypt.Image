@@ -11,12 +11,17 @@ namespace VideoCrypt.Image.Main.Utils
 {
     public static class S3Utils
     {
-        private const string ServiceUrl = "http://192.168.30.23:9000";
-        private const string AccessKey = "Qqt3KMXNlK4iCKqPhgEd";
-        private const string SecretKey = "Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6";
-        public const string SourceBucket = "imagesbucket";
-        public const string DestinationBucket = "public";
-
+        /* const string ServiceUrl = "http://192.168.30.23:9000";
+         const string AccessKey = "Qqt3KMXNlK4iCKqPhgEd";
+         const string SecretKey = "Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6";
+         const string SourceBucket = "imagesbucket";
+         const string DestinationBucket = "public";*/
+        
+         private const string ServiceUrl = "http://51.38.80.38:7000";
+         private const string AccessKey = "KHamNyj6CmZewNHxdLHC";
+         private const string SecretKey = "XtxiK7UT7Yf8tGTSv1P1KOVY3DWygjaye4o0t5N9";
+         public const string SourceBucket = "imagesbucket";
+         public const string DestinationBucket = "imagesbucket";
         private static AmazonS3Client GetS3Client()
         {
             var config = new AmazonS3Config
