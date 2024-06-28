@@ -24,12 +24,10 @@ namespace VideoCrypt.Image.Main.Controllers
             try
             {
                 var fileName = Path.GetFileName(file.FileName);
-                var filePath = Path.Combine(_cacheDirectory, fileName);
-                var bucketName = S3Utils.SourceBucket;
 
-                if (System.IO.File.Exists(filePath))
+                if (await S3Utils.FileExistsAsync(fileName))
                 {
-                    return Ok("File already exists in the cache.");
+                    return Ok("File already exists in the bucket.");
                 }
 
                 using (var memoryStream = new MemoryStream())
@@ -37,11 +35,10 @@ namespace VideoCrypt.Image.Main.Controllers
                     await file.CopyToAsync(memoryStream);
                     memoryStream.Seek(0, SeekOrigin.Begin); 
 
-                    await S3Utils.UploadFileAsync(fileName, memoryStream, bucketName, file.ContentType);
-
+                    await S3Utils.UploadFileAsync(fileName, memoryStream, file.ContentType);
                 }
 
-                return Ok("File uploaded  successfully.");
+                return Ok("File uploaded successfully.");
             }
             catch (Exception ex)
             {
@@ -57,9 +54,8 @@ namespace VideoCrypt.Image.Main.Controllers
 
             if (System.IO.File.Exists(filePath))
             {
-                // Return file from cache
                 var image = System.IO.File.OpenRead(filePath);
-                return File(image, "image/jpeg"); // Adjust the content type based on your image type
+                return File(image, "image/jpeg");
             }
 
             var bucketName = S3Utils.SourceBucket;
@@ -82,6 +78,21 @@ namespace VideoCrypt.Image.Main.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        [HttpGet]
+        public async Task<IActionResult> GenerateShareLink(string fileName)
+        {
+            try
+            {
+                var url = S3Utils.GenerateCustomPreSignedUrl(fileName, TimeSpan.FromHours(1));
+                return Ok(new { url });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, $"Error generating share link: {ex.Message}");
+            }
+        }
+
 
         [HttpGet]
         public async Task<IActionResult> TestConnection()
@@ -97,10 +108,6 @@ namespace VideoCrypt.Image.Main.Controllers
                 return StatusCode(500, $"Connection failed: {ex.Message}");
             }
         }
-
-        public IActionResult Index()
-        {
-            return View();
-        }
+        
     }
 }

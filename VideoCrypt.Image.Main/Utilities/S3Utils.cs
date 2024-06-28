@@ -1,11 +1,6 @@
-using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace VideoCrypt.Image.Main.Utils
 {
@@ -17,7 +12,9 @@ namespace VideoCrypt.Image.Main.Utils
          const string SourceBucket = "imagesbucket";
          const string DestinationBucket = "public";*/
         
-         private const string ServiceUrl = "http://10.13.111.3:9000";
+         private const string ServiceUrl = "http://10.13.111.3";
+         public const string UiPort = ":9001";
+         public const string ServerPort = ":9000";
          const string AccessKey = "Qqt3KMXNlK4iCKqPhgEd";
          const string SecretKey = "Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6";
          public const string SourceBucket = "imagesbucket";
@@ -25,24 +22,50 @@ namespace VideoCrypt.Image.Main.Utils
         {
             var config = new AmazonS3Config
             {
-                ServiceURL = ServiceUrl,
+                ServiceURL = ServiceUrl + ServerPort,
                 ForcePathStyle = true
             };
 
             var credentials = new BasicAWSCredentials(AccessKey, SecretKey);
             return new AmazonS3Client(credentials, config);
         }
+        public static async Task<List<string>> ListFilesAsync()
+        {
+            try
+            {
+                var client = GetS3Client();
+                var request = new ListObjectsV2Request
+                {
+                    BucketName = SourceBucket
+                };
 
-        public static async Task UploadFileAsync(string fileName, MemoryStream memoryStream, string bucketName, string contentType)
+                var response = await client.ListObjectsV2Async(request);
+
+                if (response.HttpStatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    throw new Exception($"Error listing files: {response.HttpStatusCode}");
+                }
+
+                var urls = response.S3Objects.Select(o => GenerateCustomPreSignedUrl(o.Key, TimeSpan.FromHours(1))).ToList();
+                return urls;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error encountered: '{e.Message}' when listing files");
+                throw;
+            }
+        }
+
+        public static async Task UploadFileAsync(string fileName, MemoryStream memoryStream, string contentType)
         {
             try
             {
                 var client = GetS3Client();
 
-                memoryStream.Seek(0, SeekOrigin.Begin); // Ensure stream is at the beginning
+                memoryStream.Seek(0, SeekOrigin.Begin); 
                 var request = new PutObjectRequest
                 {
-                    BucketName = bucketName,
+                    BucketName = SourceBucket,
                     Key = fileName,
                     InputStream = memoryStream,
                     ContentType = contentType
@@ -61,7 +84,28 @@ namespace VideoCrypt.Image.Main.Utils
                 throw;
             }
         }
+        public static async Task<bool> FileExistsAsync(string key)
+        {
+            try
+            {
+                var client = GetS3Client();
+                var request = new GetObjectMetadataRequest
+                {
+                    BucketName = SourceBucket,
+                    Key = key
+                };
 
+                var response = await client.GetObjectMetadataAsync(request);
+                return response.HttpStatusCode == System.Net.HttpStatusCode.OK;
+            }
+            catch (AmazonS3Exception ex)
+            {
+                if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    return false;
+                else
+                    throw;
+            }
+        }
         public static async Task<byte[]> DownloadFileAsync(string fileName, string bucketName)
         {
             try
@@ -115,5 +159,22 @@ namespace VideoCrypt.Image.Main.Utils
                 throw;
             }
         }
+        public static string GenerateCustomPreSignedUrl(string key, TimeSpan expiry)
+        {
+            var client = GetS3Client();
+            var request = new GetPreSignedUrlRequest
+            {
+                BucketName = SourceBucket,
+                Key = key,
+                Expires = DateTime.UtcNow.Add(expiry)
+            };
+
+            string preSignedUrl = client.GetPreSignedURL(request);
+
+            string customUrl = $"{ServiceUrl}{UiPort}/api/v1/buckets/{SourceBucket}/objects/download?preview=true&prefix={Uri.EscapeDataString(key)}&version_id=null";
+
+            return customUrl;
+        }
+
     }
 }
