@@ -17,7 +17,7 @@ namespace VideoCrypt.Image.Main.Utils
          const string SourceBucket = "imagesbucket";
          const string DestinationBucket = "public";*/
         
-         private const string ServiceUrl = "http://10.101.255.253:9000";
+         private const string ServiceUrl = "http://10.13.111.3/:9000";
          const string AccessKey = "Qqt3KMXNlK4iCKqPhgEd";
          const string SecretKey = "Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6";
          public const string SourceBucket = "imagesbucket";
