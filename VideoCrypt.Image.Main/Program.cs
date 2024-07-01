@@ -1,26 +1,25 @@
-using System.Net;
-using System.Net.Http;
-using Hydro.Configuration;
 using Microsoft.AspNetCore.Builder;
-using Minio;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using VideoCrypt.Image.Main.Data; // Change to your actual namespace
+using Hydro.Configuration;
+using Minio;
+using System.Net.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorPages();
 builder.Services.AddHydro();
 
-var minioConfig = builder.Configuration.GetSection("Minio");
-var endpoint = minioConfig.GetValue<string>("url");
-var accessKey = minioConfig.GetValue<string>("accessKey");
-var secretKey = minioConfig.GetValue<string>("secretKey");
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("image_db")));
 
-var httpClient = new HttpClient(new HttpClientHandler
-{
-    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
-});
+builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultUI();
 
 
 var app = builder.Build();
@@ -35,6 +34,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseAuthentication(); 
 app.UseAuthorization();
 
 app.MapRazorPages();
@@ -42,7 +42,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-app.UseHydro(builder.Environment);
-app.MapControllers(); // This is important to enable attribute routing for controllers
+app.UseHydro(app.Environment);
+app.MapControllers(); 
 
 app.Run();

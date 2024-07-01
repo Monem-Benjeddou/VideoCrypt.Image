@@ -1,6 +1,6 @@
-Dropzone.options.dropzoneForm = {
+Dropzone.options.myGreatDropzone = {
     addRemoveLinks: true,
-    paramName: "files",
+    paramName: "file",
     maxFiles: 1,
     init: function () {
         var myDropzone = this;
@@ -15,26 +15,23 @@ Dropzone.options.dropzoneForm = {
                     myDropzone.emit("addedfile", mockFile);
                     myDropzone.emit("thumbnail", mockFile, item.filePath);
                     myDropzone.emit("complete", mockFile);
-                    displayFileDetails(mockFile);
+                    displayFileDetails(mockFile, myDropzone);
                     showGenerateLinkButton();
                 });
             }
         });
 
-        // When a file is added
         myDropzone.on("addedfile", function (file) {
             if (myDropzone.files[1] != null) {
                 myDropzone.removeFile(myDropzone.files[0]);
             }
         });
 
-        // When a file is successfully uploaded
         myDropzone.on("success", function (file, response) {
-            displayFileDetails(file);
+            displayFileDetails(file, myDropzone);
             showGenerateLinkButton();
         });
 
-        // When a file is removed
         myDropzone.on("removedfile", function (file) {
             document.getElementById('fileDetails').innerHTML = '';
             document.getElementById('shareLink').innerHTML = '';
@@ -42,11 +39,11 @@ Dropzone.options.dropzoneForm = {
     }
 };
 
-function displayFileDetails(file) {
+function displayFileDetails(file, dropzoneInstance) {
     var fileDetails = document.getElementById('fileDetails');
     fileDetails.innerHTML = '<h3>File Details</h3>' +
         '<p><strong>Name:</strong> <span id="fileName">' + file.name + '</span></p>' +
-        '<p><strong>Size:</strong> ' + formatFileSize(file.size) + '</p>';
+        '<p><strong>Size:</strong> ' + formatFileSize(file.size) + '</p>' ;
 }
 
 function formatFileSize(bytes) {

@@ -1,6 +1,8 @@
+
 <div class="container d-flex flex-column justify-content-center">
     <h1>Upload Files</h1>
-    <form style="height: 45em; width: 50em;" action="/FileUpload/Upload" method="post" class="dropzone align-self-center" id="dropzoneForm"  enctype="multipart/form-data">
+    <form id="my-great-dropzone" class="dropzone align-self-center" style="height: 45em; width: 50em;"
+          action="/FileUpload/Upload" method="post" enctype="multipart/form-data">
         <div class="fallback">
             <input type="file" name="file"/>
             <input type="submit" value="Upload!">
