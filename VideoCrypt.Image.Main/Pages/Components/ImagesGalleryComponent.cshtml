@@ -1,0 +1,54 @@
+@using Hydro
+@using VideoCrypt.Image.Main.Pages.Components
+@model ImagesGalleryComponent
+
+<div>
+    <div class="container mt-5">
+        <h2 class="text-center">Image Gallery</h2>
+        <div class="row">
+            @if (await Model.Images.Value != null)
+            {
+            var images = await Model.Images.Value;
+            if (images.Any())
+            {
+            @foreach (var image in images)
+            {
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <img src="data:image/jpeg;base64,@Convert.ToBase64String(image)"
+                     class="img-fluid gallery-image"
+                     data-bs-toggle="modal"
+                     data-bs-target="#imageModal"
+                     data-bs-src="data:image/jpeg;base64,@Convert.ToBase64String(image)">
+            </div>
+            }
+            }
+            else
+            {
+            <div class="col-12">
+                <p class="text-center">No images found.</p>
+            </div>
+            }
+            }
+            else
+            {
+            <div class="col-12">
+                <p class="text-center">Loading images...</p>
+            </div>
+            }
+        </div>
+    </div>
+
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <img id="modalImage" src="" class="img-fluid">
+                </div>
+                <div class="modal-footer">
+                    <a id="downloadLink" href="" class="btn btn-primary" download>Download</a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

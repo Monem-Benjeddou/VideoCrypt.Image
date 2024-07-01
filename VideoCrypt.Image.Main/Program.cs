@@ -1,13 +1,7 @@
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using VideoCrypt.Image.Main.Data; // Change to your actual namespace
+using VideoCrypt.Image.Main.Data;
 using Hydro.Configuration;
-using Minio;
-using System.Net.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,7 +35,6 @@ app.MapRazorPages();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
 app.UseHydro(app.Environment);
 app.MapControllers(); 
 

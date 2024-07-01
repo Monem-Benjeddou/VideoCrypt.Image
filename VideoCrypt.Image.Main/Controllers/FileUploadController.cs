@@ -108,6 +108,24 @@ namespace VideoCrypt.Image.Main.Controllers
                 return StatusCode(500, $"Connection failed: {ex.Message}");
             }
         }
-        
+        [HttpGet]
+        public async Task<IActionResult> GetFile(string fileName)
+        {
+            try
+            {
+                var fileBytes = await S3Utils.DownloadFileAsync(fileName, S3Utils.SourceBucket);
+                return File(fileBytes, "application/octet-stream", fileName);
+            }
+            catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return NotFound("File not found.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error downloading file: {ex.Message}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
     }
 }

@@ -29,7 +29,7 @@ namespace VideoCrypt.Image.Main.Utils
             var credentials = new BasicAWSCredentials(AccessKey, SecretKey);
             return new AmazonS3Client(credentials, config);
         }
-        public static async Task<List<string>> ListFilesAsync()
+        public static async Task<List<byte[]>> ListFilesAsync()
         {
             try
             {
@@ -46,8 +46,15 @@ namespace VideoCrypt.Image.Main.Utils
                     throw new Exception($"Error listing files: {response.HttpStatusCode}");
                 }
 
-                var urls = response.S3Objects.Select(o => GenerateCustomPreSignedUrl(o.Key, TimeSpan.FromHours(1))).ToList();
-                return urls;
+                var fileBytesList = new List<byte[]>();
+                foreach (var s3Object in response.S3Objects)
+                {
+                    var fileName = s3Object.Key;
+                    var fileBytes = await DownloadFileAsync(fileName, SourceBucket);
+                    fileBytesList.Add(fileBytes);
+                }
+
+                return fileBytesList;
             }
             catch (Exception e)
             {
@@ -55,6 +62,7 @@ namespace VideoCrypt.Image.Main.Utils
                 throw;
             }
         }
+
 
         public static async Task UploadFileAsync(string fileName, MemoryStream memoryStream, string contentType)
         {
