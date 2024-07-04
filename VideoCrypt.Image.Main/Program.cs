@@ -28,8 +28,6 @@ builder.Services.AddDataProtection()
 builder.Services.AddHttpClient<AuthenticationService>(client =>
 {
     client.BaseAddress = new Uri("http://51.38.80.38:7003");
-    client.DefaultRequestHeaders.Accept.Clear();
-    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 })
     
 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler

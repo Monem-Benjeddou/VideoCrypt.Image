@@ -18,20 +18,19 @@ namespace VideoCrypt.Image.Main.Pages.Account
         private readonly ILogger<LoginModel> _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public LoginModel(AuthenticationService authenticationService, ILogger<LoginModel> logger,IHttpContextAccessor httpContextAccessor)
+        public LoginModel(AuthenticationService authenticationService, ILogger<LoginModel> logger,
+            IHttpContextAccessor httpContextAccessor)
         {
             _authenticationService = authenticationService;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
         }
 
-        [BindProperty]
-        public InputModel Input { get; set; }
+        [BindProperty] public InputModel Input { get; set; }
 
         public string ReturnUrl { get; set; }
 
-        [TempData]
-        public string ErrorMessage { get; set; }
+        [TempData] public string ErrorMessage { get; set; }
 
         public class InputModel
         {
@@ -43,8 +42,7 @@ namespace VideoCrypt.Image.Main.Pages.Account
             [DataType(DataType.Password)]
             public string Password { get; set; }
 
-            [Display(Name = "Remember me?")]
-            public bool RememberMe { get; set; }
+            [Display(Name = "Remember me?")] public bool RememberMe { get; set; }
         }
 
         public void OnGet(string returnUrl = null)
@@ -56,6 +54,7 @@ namespace VideoCrypt.Image.Main.Pages.Account
                 ModelState.AddModelError(string.Empty, ErrorMessage);
             }
         }
+
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
@@ -64,7 +63,7 @@ namespace VideoCrypt.Image.Main.Pages.Account
                 if (ModelState.IsValid)
                 {
                     var token = await _authenticationService.AuthenticateAsync(Input.Email, Input.Password);
-                    Console.WriteLine(token);
+
                     if (token != null)
                     {
                         var claims = new[]
@@ -76,7 +75,6 @@ namespace VideoCrypt.Image.Main.Pages.Account
                         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
                         var principal = new ClaimsPrincipal(identity);
-                        await _httpContextAccessor.HttpContext.AuthenticateAsync(token);
 
                         await HttpContext.SignInAsync(
                             CookieAuthenticationDefaults.AuthenticationScheme,
@@ -93,15 +91,17 @@ namespace VideoCrypt.Image.Main.Pages.Account
                     else
                     {
                         ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                        return Page();
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogError(ex, "Exception occurred while logging in.");
+                ModelState.AddModelError(string.Empty, "An error occurred while processing your request.");
             }
 
+            // If login fails or there's an error, return to the login page with errors displayed
             return Page();
-        }    }
+        }
+    }
 }
