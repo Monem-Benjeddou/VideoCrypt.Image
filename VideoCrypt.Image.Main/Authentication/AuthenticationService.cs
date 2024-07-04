@@ -16,8 +16,9 @@ public class AuthenticationService
     public async Task<string> AuthenticateAsync(string email, string password)
     {
         var loginRequest = new { Email = email, Password = password };
+        Console.WriteLine(_httpClient.BaseAddress);
         var response = await _httpClient.PostAsJsonAsync($"{_httpClient.BaseAddress}login", loginRequest);
-
+        
         if (!response.IsSuccessStatusCode) return null;
         var jsonResponse = await response.Content.ReadAsStringAsync();
         var serializeOptions = new JsonSerializerOptions
