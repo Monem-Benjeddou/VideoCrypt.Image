@@ -22,7 +22,7 @@ services:
   videocrypt-caching-app:
     build:
       context: ..
-      dockerfile: VideoCrypt.Image.CachingApp/Dockerfile
+      dockerfile: VideoCrypt.Image.CashingApp/Dockerfile
     ports:
       - "4000:4000"
     environment:

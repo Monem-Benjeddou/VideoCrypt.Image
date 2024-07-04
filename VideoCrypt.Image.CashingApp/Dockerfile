@@ -3,6 +3,9 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 ENV ASPNETCORE_URLS=http://+:4000
 
+# Create the shared cache directory
+RUN mkdir -p /path/to/shared/cache/directory
+
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
