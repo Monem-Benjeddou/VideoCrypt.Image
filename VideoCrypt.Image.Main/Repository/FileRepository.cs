@@ -14,7 +14,7 @@ namespace VideoCrypt.Image.Main.Repository
     {
         private readonly HttpClient _httpClient;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private string _apiBaseUrl = "http://localhost:7001";
+        private string _apiBaseUrl = "http://51.38.80.38:7003";
 
         public FileRepository(HttpClient httpClient, IHttpContextAccessor httpContextAccessor)
         {
