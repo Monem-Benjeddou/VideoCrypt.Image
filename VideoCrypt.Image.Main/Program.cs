@@ -35,7 +35,6 @@ builder.Services.AddHttpClient<AuthenticationService>(client =>
 
 builder.Services.AddRazorPages();
 
-
 builder.Services.AddScoped<CustomCookieAuthenticationEvents>();
 builder.Services.AddScoped<IFileRepository, FileRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -69,8 +68,8 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-
 builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
