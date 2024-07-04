@@ -1,0 +1,6 @@
+@VideoCrypt.Image.Api_HostAddress = http://localhost:5147
+
+GET {{VideoCrypt.Image.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

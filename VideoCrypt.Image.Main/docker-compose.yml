@@ -1,14 +1,4 @@
 services:
-  videocrypt-api:
-    build:
-      context: ..
-      dockerfile: VideoCrypt.Image.Api/Dockerfile
-    ports:
-      - "7001:7003"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-    network_mode: host
-
   videocrypt-main:
     build:
       context: .
