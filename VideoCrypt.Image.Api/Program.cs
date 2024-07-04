@@ -1,10 +1,8 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
-using VideoCrypt.Image.Api.Data;
+using VideoCrypt.Image.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +22,8 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("image_db")));
+
+
 
 builder.Services.AddIdentityApiEndpoints<IdentityUser>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
@@ -59,16 +59,17 @@ builder.Services.AddSwaggerGen(setup =>
     {
         { jwtSecurityScheme, Array.Empty<string>() }
     });
-
 });
 
 var app = builder.Build();
 
 
-app.MapPost("/logout", async (SignInManager<IdentityUser> signInManager) =>
-{
-    await signInManager.SignOutAsync().ConfigureAwait(false);
-}).RequireAuthorization();
+app.MapPost("/logout",
+        async (SignInManager<IdentityUser> signInManager) =>
+        {
+            await signInManager.SignOutAsync().ConfigureAwait(false);
+        })
+    .RequireAuthorization();
 
 
 app.UseCors("AllowAll");

@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace VideoCrypt.Image.Api.Migrations
+namespace VideoCrypt.Image.Data.Migrations
 {
     /// <inheritdoc />
     public partial class AddedIdentityUser : Migration

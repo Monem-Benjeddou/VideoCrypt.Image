@@ -1,0 +1,11 @@
+@VideoCrypt.Image.Server_HostAddress = http://localhost:5088
+
+GET {{VideoCrypt.Image.Server_HostAddress}}/todos/
+Accept: application/json
+
+###
+
+GET {{VideoCrypt.Image.Server_HostAddress}}/todos/1
+Accept: application/json
+
+###

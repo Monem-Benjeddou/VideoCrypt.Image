@@ -11,13 +11,14 @@ namespace VideoCrypt.Image.Main.Utils
          const string SecretKey = "Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6";
          const string SourceBucket = "imagesbucket";
          const string DestinationBucket = "public";*/
-        
-         private const string ServiceUrl = "http://10.13.111.3";
-         public const string UiPort = ":9001";
-         public const string ServerPort = ":9000";
-         const string AccessKey = "Qqt3KMXNlK4iCKqPhgEd";
-         const string SecretKey = "Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6";
-         public const string SourceBucket = "imagesbucket";
+
+        private const string ServiceUrl = "http://10.13.111.3";
+        public const string UiPort = ":9001";
+        public const string ServerPort = ":9000";
+        const string AccessKey = "Qqt3KMXNlK4iCKqPhgEd";
+        const string SecretKey = "Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6";
+        public const string SourceBucket = "imagesbucket";
+
         private static AmazonS3Client GetS3Client()
         {
             var config = new AmazonS3Config
@@ -29,6 +30,7 @@ namespace VideoCrypt.Image.Main.Utils
             var credentials = new BasicAWSCredentials(AccessKey, SecretKey);
             return new AmazonS3Client(credentials, config);
         }
+
         public static async Task<List<byte[]>> ListFilesAsync()
         {
             try
@@ -70,7 +72,7 @@ namespace VideoCrypt.Image.Main.Utils
             {
                 var client = GetS3Client();
 
-                memoryStream.Seek(0, SeekOrigin.Begin); 
+                memoryStream.Seek(0, SeekOrigin.Begin);
                 var request = new PutObjectRequest
                 {
                     BucketName = SourceBucket,
@@ -92,6 +94,7 @@ namespace VideoCrypt.Image.Main.Utils
                 throw;
             }
         }
+
         public static async Task<bool> FileExistsAsync(string key)
         {
             try
@@ -114,6 +117,7 @@ namespace VideoCrypt.Image.Main.Utils
                     throw;
             }
         }
+
         public static async Task<byte[]> DownloadFileAsync(string fileName, string bucketName)
         {
             try
@@ -167,6 +171,7 @@ namespace VideoCrypt.Image.Main.Utils
                 throw;
             }
         }
+
         public static string GenerateCustomPreSignedUrl(string key, TimeSpan expiry)
         {
             var client = GetS3Client();
@@ -179,10 +184,10 @@ namespace VideoCrypt.Image.Main.Utils
 
             string preSignedUrl = client.GetPreSignedURL(request);
 
-            string customUrl = $"{ServiceUrl}{UiPort}/api/v1/buckets/{SourceBucket}/objects/download?preview=true&prefix={Uri.EscapeDataString(key)}&version_id=null";
+            string customUrl =
+                $"{ServiceUrl}{UiPort}/api/v1/buckets/{SourceBucket}/objects/download?preview=true&prefix={Uri.EscapeDataString(key)}&version_id=null";
 
             return customUrl;
         }
-
     }
 }

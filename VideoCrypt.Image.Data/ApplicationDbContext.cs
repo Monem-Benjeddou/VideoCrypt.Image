@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using VideoCrypt.Image.Data.Models;
 
-namespace VideoCrypt.Image.Api.Data;
+namespace VideoCrypt.Image.Data;
 
 public class ApplicationDbContext :  IdentityDbContext<IdentityUser>
 {
@@ -12,7 +13,7 @@ public class ApplicationDbContext :  IdentityDbContext<IdentityUser>
         Database.Migrate();
         Database.EnsureCreated();
     }
-
+    public DbSet<ImageMetadata> ImageMetadata { get; set; }
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

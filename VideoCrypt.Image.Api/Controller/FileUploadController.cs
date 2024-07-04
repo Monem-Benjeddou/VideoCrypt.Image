@@ -1,6 +1,9 @@
+using System.Net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using VideoCrypt.Image.Main.Utils;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace VideoCrypt.Image.Api.Controller
 {
@@ -9,6 +12,12 @@ namespace VideoCrypt.Image.Api.Controller
     [Route("api/[controller]")]
     public class FileController : ControllerBase
     {
+        private readonly IHttpClientFactory _httpClientFactory;
+
+        public FileController(IHttpClientFactory httpClientFactory)
+        {
+            _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
+        }
         [HttpPost("upload")]
         public async Task<IActionResult> Upload([FromForm] IFormFile file)
         {
@@ -45,12 +54,43 @@ namespace VideoCrypt.Image.Api.Controller
         {
             try
             {
-                var fileBytes = await S3Utils.DownloadFileAsync(fileName, S3Utils.SourceBucket);
-                return File(fileBytes, "image/jpeg");
+                using var client = _httpClientFactory.CreateClient();
+                var response = await client.GetAsync($"http://51.38.80.38:4000/api/file/image/{fileName}");
+
+                if (!response.IsSuccessStatusCode)
+                    return response.StatusCode == System.Net.HttpStatusCode.NotFound ?
+                        NotFound("Image not found.") :
+                        StatusCode((int)response.StatusCode, $"Failed to retrieve image: {response.ReasonPhrase}");
+                var imageUrl = await response.Content.ReadAsStringAsync();
+                return Ok(new { Url = imageUrl });
             }
-            catch (Amazon.S3.AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+            catch (Exception ex)
             {
-                return NotFound("Image not found in the bucket.");
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("download/{fileName}")]
+        public async Task<IActionResult> DownloadFile(string fileName)
+        {
+            try
+            {
+                using (var client = _httpClientFactory.CreateClient())
+                {
+                    var response = await client.GetAsync($"http://51.38.80.38:4000/api/file/download/{fileName}");
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                            return NotFound("File not found.");
+
+                        return StatusCode((int)response.StatusCode, $"Failed to download file: {response.ReasonPhrase}");
+                    }
+
+                    var fileBytes = await response.Content.ReadAsByteArrayAsync();
+                    return File(fileBytes, "application/octet-stream", fileName);
+                }
             }
             catch (Exception ex)
             {
@@ -64,7 +104,17 @@ namespace VideoCrypt.Image.Api.Controller
         {
             try
             {
-                var files = await S3Utils.ListFilesAsync();
+                using var client = _httpClientFactory.CreateClient();
+                var response = await client.GetAsync("http://51.38.80.38:4000/api/file/list");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return response.StatusCode == HttpStatusCode.NotFound ? NotFound("No files found.") : StatusCode((int)response.StatusCode, $"Failed to get files: {response.ReasonPhrase}");
+                }
+
+                var responseBody = await response.Content.ReadAsStringAsync();
+                var files = JsonSerializer.Deserialize<List<string>>(responseBody);
+
                 return Ok(files);
             }
             catch (Exception ex)
