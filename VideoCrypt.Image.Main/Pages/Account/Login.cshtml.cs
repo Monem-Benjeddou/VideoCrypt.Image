@@ -64,7 +64,7 @@ namespace VideoCrypt.Image.Main.Pages.Account
             if (ModelState.IsValid)
             {
                 var token = await _authenticationService.AuthenticateAsync(Input.Email, Input.Password);
-
+                Console.WriteLine(token);
                 if (token != null)
                 {
                     var claims = new[]
