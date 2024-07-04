@@ -76,7 +76,7 @@ namespace VideoCrypt.Image.Main.Pages.Account
                     var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
                     var principal = new ClaimsPrincipal(identity);
-                    _httpContextAccessor.HttpContext.AuthenticateAsync(token);
+                    await _httpContextAccessor.HttpContext.AuthenticateAsync(token);
 
                     await HttpContext.SignInAsync(
                         CookieAuthenticationDefaults.AuthenticationScheme,
