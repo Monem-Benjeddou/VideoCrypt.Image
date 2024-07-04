@@ -3,6 +3,7 @@ using Hydro.Configuration;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,7 +21,9 @@ var secret = Encoding.ASCII.GetBytes(jwtSettings["Secret"]);
 
 builder.Services.AddHydro();
 builder.Services.AddHttpContextAccessor();
-
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(@"./keys"))
+    .SetApplicationName("VideoCryptImage");
 builder.Services.AddHttpClient<AuthenticationService>(client =>
 {
     client.BaseAddress = new Uri("http://51.38.80.38:7003");

@@ -56,7 +56,6 @@ namespace VideoCrypt.Image.Main.Pages.Account
                 ModelState.AddModelError(string.Empty, ErrorMessage);
             }
         }
-
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
