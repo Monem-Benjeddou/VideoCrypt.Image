@@ -37,7 +37,6 @@ builder.Services.AddRazorPages();
 
 builder.Services.AddScoped<CustomCookieAuthenticationEvents>();
 builder.Services.AddScoped<IFileRepository, FileRepository>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 builder.Services.AddAuthentication(options =>
 {
