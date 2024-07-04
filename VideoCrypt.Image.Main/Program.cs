@@ -23,7 +23,7 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddHttpClient<AuthenticationService>(client =>
 {
-    client.BaseAddress = new Uri("http://localhost:7001");
+    client.BaseAddress = new Uri("http://51.38.80.38:7001");
 })
 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
 {
