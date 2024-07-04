@@ -18,3 +18,12 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     network_mode: host
+  videocrypt-cashing-app:
+    build:
+      context: ..
+      dockerfile: VideoCrypt.Image.CashingApp/Dockerfile
+    ports:
+      - "7001:7003"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    network_mode: host

@@ -40,13 +40,28 @@ namespace VideoCrypt.Image.Main.Repository
             var response = await _httpClient.PostAsync($"{_apiBaseUrl}/api/File/upload", content);
             response.EnsureSuccessStatusCode();
         }
-
-        public async Task<List<byte[]>> ListFilesAsync()
+        public async Task DeleteFileAsync(string fileName)
         {
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await GetAccessToken());
 
-            var response = await _httpClient.GetFromJsonAsync<List<byte[]>>(new Uri($"{_apiBaseUrl}/api/File/list"));
-            return response ?? new List<byte[]>();
+            var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/api/File/delete/{fileName}");
+            response.EnsureSuccessStatusCode();
+        }
+
+        public async Task<List<string>> ListFilesAsync(int page = 1, int pageSize = 10)
+        {
+            try
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await GetAccessToken());
+                var response = await _httpClient.GetFromJsonAsync<List<string>>(new Uri($"{_apiBaseUrl}/api/file/list?page={page}&pageSize={pageSize}"));
+
+                return response ?? new List<string>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return new List<string>();
+            }
         }
 
         public async Task<byte[]> GetImageAsync(string fileName)

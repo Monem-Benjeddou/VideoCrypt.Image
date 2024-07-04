@@ -100,12 +100,12 @@ namespace VideoCrypt.Image.Api.Controller
         }
 
         [HttpGet("list")]
-        public async Task<IActionResult> ListFiles()
+        public async Task<IActionResult> ListFiles(int page = 1, int pageSize = 10)
         {
             try
             {
                 using var client = _httpClientFactory.CreateClient();
-                var response = await client.GetAsync("http://51.38.80.38:4000/api/file/list");
+                var response = await client.GetAsync($"http://51.38.80.38:4000/api/file/list?page={page}&pageSize={pageSize}");
 
                 if (!response.IsSuccessStatusCode)
                 {

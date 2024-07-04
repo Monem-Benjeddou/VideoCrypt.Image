@@ -6,6 +6,7 @@ namespace VideoCrypt.Image.Main.Repository
     {
         Task UploadFileAsync(IFormFile? file);
         Task<byte[]> GetImageAsync(string fileName);
-        Task<List<byte[]>> ListFilesAsync();
+        Task<List<string>> ListFilesAsync(int page = 1, int pageSize = 10);
+        Task DeleteFileAsync(string fileName);
     }
 }

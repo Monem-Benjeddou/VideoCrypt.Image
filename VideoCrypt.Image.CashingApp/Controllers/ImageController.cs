@@ -38,11 +38,11 @@ namespace VideoCrypt.Image.Server.Controllers
             }
         }
         [HttpGet("list")]
-        public async Task<IActionResult> ListFiles()
+        public async Task<IActionResult> ListFiles(int page = 1, int pageSize = 10)
         {
             try
             {
-                var files = await _imageRepository.ListImagesAsync();
+                var files = await _imageRepository.ListImagesAsync(page, pageSize);
                 return Ok(files);
             }
             catch (Exception ex)
@@ -50,7 +50,7 @@ namespace VideoCrypt.Image.Server.Controllers
                 Console.WriteLine(ex.Message);
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
-        } 
+        }
         [HttpDelete("{fileName}")]
         public async Task<IActionResult> DeleteImage(string fileName)
         {

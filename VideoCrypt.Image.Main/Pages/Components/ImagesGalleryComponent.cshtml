@@ -1,50 +1,48 @@
-@using Hydro
-@using VideoCrypt.Image.Main.Pages.Components
-@model ImagesGalleryComponent
+@model List<string>
+@{
+    ViewData["Title"] = "Image Gallery";
+}
 
 <div class="container mt-5">
     <h2 class="text-center mb-4">Image Gallery</h2>
     <div class="row">
-        @if (Model.Images.Value != null)
+        @if (Model != null && Model.Any())
         {
-        var images = await Model.Images.Value;
-        if (images.Any())
-        {
-        @foreach (var image in images)
-        {
-        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-            <div class="card">
-                <img src="data:image/jpeg;base64,@Convert.ToBase64String(image)"
-                     class="card-img-top gallery-image"
-                     data-bs-toggle="modal"
-                     data-bs-target="#imageModal"
-                     data-bs-src="data:image/jpeg;base64,@Convert.ToBase64String(image)">
-                <div class="card-body text-center">
-                    <button class="btn btn-primary" data-bs-toggle="modal"
-                            data-bs-target="#imageModal"
-                            data-bs-src="data:image/jpeg;base64,@Convert.ToBase64String(image)">
-                        View
-                    </button>
+            foreach (var imageUrl in Model)
+            {
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                    <div class="card">
+                        <img src="@imageUrl" class="card-img-top gallery-image" data-bs-toggle="modal" data-bs-target="#imageModal" data-bs-src="@imageUrl">
+                        <div class="card-body text-center">
+                            <button class="btn btn-danger" onclick="deleteImage('@imageUrl')">Delete</button>
+                        </div>
+                    </div>
                 </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <p class="text-center">No images found.</p>
             </div>
-        </div>
-        }
-        }
-        else
-        {
-        <div class="col-12">
-            <p class="text-center">No images found.</p>
-        </div>
-        }
-        }
-        else
-        {
-        <div class="col-12">
-            <p class="text-center">Loading images...</p>
-        </div>
         }
     </div>
 
+    <!-- Pagination -->
+    <div class="row justify-content-center mt-4">
+        <nav aria-label="Page navigation example">
+            <ul class="pagination">
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
+                        <a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Modal -->
     <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -58,4 +56,5 @@
             </div>
         </div>
     </div>
-</div>  
+</div>
+

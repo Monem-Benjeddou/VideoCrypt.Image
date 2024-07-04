@@ -1,3 +1,4 @@
+using System.Text;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
@@ -91,14 +92,23 @@ public class ImageRepository : IImageRepository
             throw;
         }
     }
+    private string GetContinuationToken(int page, int pageSize)
+    {
+        if (page <= 1)
+            return null;
 
-    public async Task<List<string>> ListImagesAsync()
+        int skip = (page - 1) * pageSize;
+        return Convert.ToBase64String(Encoding.UTF8.GetBytes($"skip={skip}"));
+    }
+    public async Task<List<string>> ListImagesAsync(int page, int pageSize)
     {
         try
         {
             var request = new ListObjectsV2Request
             {
-                BucketName = SourceBucket
+                BucketName = SourceBucket,
+                MaxKeys = pageSize,
+                ContinuationToken = GetContinuationToken(page, pageSize)
             };
 
             var response = await _s3Client.ListObjectsV2Async(request);
@@ -109,7 +119,6 @@ public class ImageRepository : IImageRepository
             }
 
             var fileList = new List<string>();
-            if (fileList == null) throw new ArgumentNullException(nameof(fileList));
             fileList.AddRange(response.S3Objects.Select(s3Object => s3Object.Key));
 
             return fileList;
@@ -120,7 +129,6 @@ public class ImageRepository : IImageRepository
             throw;
         }
     }
-
     public async Task<bool> DeleteFileFromBucketAsync(string fileName)
     {
         try
