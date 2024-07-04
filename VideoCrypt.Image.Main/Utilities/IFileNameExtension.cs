@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace VideoCrypt.Image.Main.Utilities;
 
-public static class IFileNameExtension
+public static class FileNameExtension
 {
     public static string TempFileName(this IFormFile file, bool randomName = true)
     {
