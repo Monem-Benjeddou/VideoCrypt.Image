@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   videocrypt-api:
     build:
@@ -18,12 +20,15 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     network_mode: host
-  videocrypt-cashing-app:
+
+  videocrypt-caching-app:
     build:
       context: ..
-      dockerfile: VideoCrypt.Image.CashingApp/Dockerfile
+      dockerfile: VideoCrypt.Image.CachingApp/Dockerfile
     ports:
-      - "7001:7003"
+      - "4000:4000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     network_mode: host
+    volumes:
+      - cache_volume:/path/to/shared/cache/directory  # Mount the
