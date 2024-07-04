@@ -9,9 +9,6 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     network_mode: host
-    volumes:
-      - cache_volume:/path/to/shared/cache/directory
-
   videocrypt-main:
     build:
       context: ..
@@ -21,12 +18,10 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     network_mode: host
-    volumes:
-      - cache_volume:/path/to/shared/cache/directory
 
   videocrypt-caching-app:
     build:
-      context: ../cashingapp
+      context: ..
       dockerfile: VideoCrypt.Image.CachingApp/Dockerfile
     ports:
       - "4000:4000"
