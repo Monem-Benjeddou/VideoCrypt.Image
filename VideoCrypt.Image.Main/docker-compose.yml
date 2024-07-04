@@ -1,11 +1,20 @@
 services:
-  videocrypt:
+  videocrypt-api:
+    build:
+      context: ..
+      dockerfile: VideoCrypt.Image.Api/Dockerfile
+    ports:
+      - "7001:7003"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    network_mode: host
+
+  videocrypt-main:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - "8001:8080" # Changing the host port to 8001
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     network_mode: host
-    pull_policy: build

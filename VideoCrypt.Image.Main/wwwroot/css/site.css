@@ -20,9 +20,3 @@ html {
 body {
   margin-bottom: 60px;
 }
-.gallery-image {
-  height: 200px;
-  object-fit: cover;
-  cursor: pointer;
-  margin-bottom: 15px;
-}
