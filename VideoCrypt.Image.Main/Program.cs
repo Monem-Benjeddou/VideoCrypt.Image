@@ -28,9 +28,7 @@ builder.Services.AddDataProtection()
 builder.Services.AddHttpClient<AuthenticationService>(client =>
 {
     client.BaseAddress = new Uri("http://51.38.80.38:7003");
-})
-    
-.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+}).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
 {
     ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
 });
@@ -57,6 +55,18 @@ builder.Services.AddAuthentication(options =>
     options.Cookie.SameSite = SameSiteMode.None;
     options.Cookie.SecurePolicy = CookieSecurePolicy.None; 
     options.EventsType = typeof(CustomCookieAuthenticationEvents);
+}).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = "yourIssuer",
+        ValidAudience = "yourAudience",
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("yourSecretKey"))
+    };
 });
 
 

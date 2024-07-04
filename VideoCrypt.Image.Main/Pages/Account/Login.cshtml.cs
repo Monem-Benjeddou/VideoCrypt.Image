@@ -75,7 +75,6 @@ namespace VideoCrypt.Image.Main.Pages.Account
                         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
                         var principal = new ClaimsPrincipal(identity); 
-                        _httpContextAccessor.HttpContext.AuthenticateAsync(token);
 
                         await HttpContext.SignInAsync(
                             CookieAuthenticationDefaults.AuthenticationScheme,
@@ -85,7 +84,12 @@ namespace VideoCrypt.Image.Main.Pages.Account
                                 IsPersistent = Input.RememberMe,
                                 RedirectUri = returnUrl
                             });
-
+                        Response.Cookies.Append("access_token", token, new CookieOptions
+                        {
+                            HttpOnly = true,
+                            Secure = true, // or CookieSecurePolicy.None for development
+                            SameSite = SameSiteMode.Strict
+                        });
                         _logger.LogInformation("User logged in.");
                         return LocalRedirect(returnUrl);
                     }
