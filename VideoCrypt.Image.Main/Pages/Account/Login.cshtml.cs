@@ -87,8 +87,8 @@ namespace VideoCrypt.Image.Main.Pages.Account
                         Response.Cookies.Append("access_token", token, new CookieOptions
                         {
                             HttpOnly = true,
-                            Secure = true, // or CookieSecurePolicy.None for development
-                            SameSite = SameSiteMode.Strict
+                            Secure = false,
+                            SameSite = SameSiteMode.None
                         });
                         _logger.LogInformation("User logged in.");
                         return LocalRedirect(returnUrl);
