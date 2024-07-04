@@ -59,41 +59,47 @@ namespace VideoCrypt.Image.Main.Pages.Account
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
-
-            if (ModelState.IsValid)
+            try
             {
-                var token = await _authenticationService.AuthenticateAsync(Input.Email, Input.Password);
-                Console.WriteLine(token);
-                if (token != null)
+                if (ModelState.IsValid)
                 {
-                    var claims = new[]
+                    var token = await _authenticationService.AuthenticateAsync(Input.Email, Input.Password);
+                    Console.WriteLine(token);
+                    if (token != null)
                     {
-                        new Claim(ClaimTypes.Name, Input.Email),
-                        new Claim("JWT", token)
-                    };
-
-                    var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
-                    var principal = new ClaimsPrincipal(identity);
-                    await _httpContextAccessor.HttpContext.AuthenticateAsync(token);
-
-                    await HttpContext.SignInAsync(
-                        CookieAuthenticationDefaults.AuthenticationScheme,
-                        principal,
-                        new AuthenticationProperties
+                        var claims = new[]
                         {
-                            IsPersistent = Input.RememberMe,
-                            RedirectUri = returnUrl
-                        });
+                            new Claim(ClaimTypes.Name, Input.Email),
+                            new Claim("JWT", token)
+                        };
 
-                    _logger.LogInformation("User logged in.");
-                    return LocalRedirect(returnUrl);
+                        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                        var principal = new ClaimsPrincipal(identity);
+                        await _httpContextAccessor.HttpContext.AuthenticateAsync(token);
+
+                        await HttpContext.SignInAsync(
+                            CookieAuthenticationDefaults.AuthenticationScheme,
+                            principal,
+                            new AuthenticationProperties
+                            {
+                                IsPersistent = Input.RememberMe,
+                                RedirectUri = returnUrl
+                            });
+
+                        _logger.LogInformation("User logged in.");
+                        return LocalRedirect(returnUrl);
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                        return Page();
+                    }
                 }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                    return Page();
-                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
 
             return Page();
