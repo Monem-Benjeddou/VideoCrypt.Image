@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   videocrypt-api:
     build:
@@ -20,7 +18,6 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     network_mode: host
-
   videocrypt-caching-app:
     build:
       context: ..
@@ -31,7 +28,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
     network_mode: host
     volumes:
-      - cache_volume:/path/to/shared/cache/directory  # Mount the
+      - cache_volume:/path/to/shared/cache/directory
 volumes:
   cache_volume:
     driver: local
