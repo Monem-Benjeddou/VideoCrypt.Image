@@ -1,20 +1,21 @@
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-WORKDIR /app
-
+# Use the official .NET SDK image as the base build image
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
-
-COPY VideoCrypt.Image.Main.csproj ./
-RUN dotnet restore "VideoCrypt.Image.Main.csproj"
-
-COPY . .
-WORKDIR "/src"
-RUN dotnet build "VideoCrypt.Image.Main.csproj" -c Release -o /app/build
-
-FROM build AS publish
-RUN dotnet publish "VideoCrypt.Image.Main.csproj" -c Release -o /app/publish /p:UseAppHost=false
-
-FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+
+# Copy the project file and restore dependencies
+COPY VideoCrypt.Image.Main.csproj ./
+RUN dotnet restore
+
+# Copy the remaining source code
+COPY . ./
+
+# Build the project
+RUN dotnet build -c Release -o /app/build
+
+# Final image stage for execution
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+WORKDIR /app
+COPY --from=build /app/build .
+
+# Set the entry point for the application
 ENTRYPOINT ["dotnet", "VideoCrypt.Image.Main.dll"]

@@ -14,7 +14,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8001:8080" # Changing the host port to 8001
+      - "8001:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     network_mode: host
