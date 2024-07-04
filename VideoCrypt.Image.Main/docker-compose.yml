@@ -32,3 +32,6 @@ services:
     network_mode: host
     volumes:
       - cache_volume:/path/to/shared/cache/directory  # Mount the
+volumes:
+  cache_volume:
+    driver: local
