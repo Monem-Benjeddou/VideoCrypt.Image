@@ -2,40 +2,47 @@
 @using VideoCrypt.Image.Main.Pages.Components
 @model ImagesGalleryComponent
 
-<div>
-    <div class="container mt-5">
-        <h2 class="text-center">Image Gallery</h2>
-        <div class="row">s
-            @if (Model.Images.Value != null)
-            {
-                var images = await Model.Images.Value;
-                if (images.Any())
-                {
-                    @foreach (var image in images)
-                    {
-                        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                            <img src="data:image/jpeg;base64,@Convert.ToBase64String(image)"
-                                 class="img-fluid gallery-image"
-                                 data-bs-toggle="modal"
-                                 data-bs-target="#imageModal"
-                                 data-bs-src="data:image/jpeg;base64,@Convert.ToBase64String(image)">
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div class="col-12">
-                        <p class="text-center">No images found.</p>
-                    </div>
-                }
-            }
-            else
-            {
-                <div class="col-12">
-                    <p class="text-center">Loading images...</p>
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Image Gallery</h2>
+    <div class="row">
+        @if (Model.Images.Value != null)
+        {
+        var images = await Model.Images.Value;
+        if (images.Any())
+        {
+        @foreach (var image in images)
+        {
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <div class="card">
+                <img src="data:image/jpeg;base64,@Convert.ToBase64String(image)"
+                     class="card-img-top gallery-image"
+                     data-bs-toggle="modal"
+                     data-bs-target="#imageModal"
+                     data-bs-src="data:image/jpeg;base64,@Convert.ToBase64String(image)">
+                <div class="card-body text-center">
+                    <button class="btn btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#imageModal"
+                            data-bs-src="data:image/jpeg;base64,@Convert.ToBase64String(image)">
+                        View
+                    </button>
                 </div>
-            }
+            </div>
         </div>
+        }
+        }
+        else
+        {
+        <div class="col-12">
+            <p class="text-center">No images found.</p>
+        </div>
+        }
+        }
+        else
+        {
+        <div class="col-12">
+            <p class="text-center">Loading images...</p>
+        </div>
+        }
     </div>
 
     <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
