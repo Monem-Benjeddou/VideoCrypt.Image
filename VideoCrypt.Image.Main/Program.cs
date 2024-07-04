@@ -19,7 +19,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Configure JWT settings
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var secret = Encoding.ASCII.GetBytes(jwtSettings["Secret"]);
-
+builder.Services.AddControllers();
 builder.Services.AddHydro();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddDataProtection()
@@ -105,6 +105,7 @@ app.UseMiddleware<JWTMiddleware>();
 app.MapControllerRoute(
     name: "Area",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+app.MapControllers();
 
 app.MapControllerRoute(
     name: "default",
