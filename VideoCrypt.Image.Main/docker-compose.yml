@@ -1,26 +1,32 @@
+
 services:
   videocrypt-api:
     build:
-      context: ..
+      context: ../api
       dockerfile: VideoCrypt.Image.Api/Dockerfile
     ports:
       - "7001:7003"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     network_mode: host
+    volumes:
+      - cache_volume:/path/to/shared/cache/directory
 
   videocrypt-main:
     build:
-      context: .
+      context: ..
       dockerfile: Dockerfile
     ports:
       - "8001:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     network_mode: host
+    volumes:
+      - cache_volume:/path/to/shared/cache/directory
+
   videocrypt-caching-app:
     build:
-      context: ..
+      context: ../cashingapp
       dockerfile: VideoCrypt.Image.CachingApp/Dockerfile
     ports:
       - "4000:4000"
@@ -29,6 +35,7 @@ services:
     network_mode: host
     volumes:
       - cache_volume:/path/to/shared/cache/directory
+
 volumes:
   cache_volume:
     driver: local
