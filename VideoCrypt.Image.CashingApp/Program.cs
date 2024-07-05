@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using VideoCrypt.Image.Data;
 using VideoCrypt.Image.CashingApp.Repository;
 
@@ -17,6 +18,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+var env = app.Environment;
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(env.ContentRootPath, "cache")),
+    RequestPath = "/cache"
+});
 
 app.UseHttpsRedirection();
 
