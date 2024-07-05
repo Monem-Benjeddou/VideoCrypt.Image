@@ -4,24 +4,27 @@
     <div class="row">
         @if (Model.Images.Value != null && Model.Images is not null)
         {
-            var images = await Model.Images.Value;
-            foreach (var imageUrl in images)
-            {
-                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                    <div class="card">
-                        <img src="@imageUrl" class="card-img-top gallery-image" data-bs-toggle="modal" data-bs-target="#imageModal" data-bs-src="@imageUrl">
-                        <div class="card-body text-center">
-                            <button class="btn btn-danger" onclick="deleteImage('@imageUrl')">Delete</button>
-                        </div>
-                    </div>
+        var images = await Model.Images.Value;
+        foreach (var imageUrl in images)
+        {
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <div class="card">
+                <img src="@imageUrl" class="card-img-top gallery-image" data-bs-toggle="modal" data-bs-target="#imageModal" data-bs-src="@imageUrl">
+                <div class="card-body text-center">
+                    <form method="post" action="/Image/deleteImage">
+                        <input type="hidden" name="imageUrl" value="@imageUrl">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
                 </div>
-            }
+            </div>
+        </div>
+        }
         }
         else
         {
-            <div class="col-12">
-                <p class="text-center">No images found.</p>
-            </div>
+        <div class="col-12">
+            <p class="text-center">No images found.</p>
+        </div>
         }
     </div>
 
@@ -31,9 +34,9 @@
             <ul class="pagination">
                 @for (int i = 1; i <= ViewBag.TotalPages; i++)
                 {
-                    <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
-                        <a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
-                    </li>
+                <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
+                    <a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
+                </li>
                 }
             </ul>
         </nav>
@@ -54,4 +57,3 @@
         </div>
     </div>
 </div>
-

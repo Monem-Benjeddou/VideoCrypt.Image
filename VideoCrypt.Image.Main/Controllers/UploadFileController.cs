@@ -7,7 +7,7 @@ namespace VideoCrypt.Image.Main.Controllers
     [Authorize]
     [ApiController]
     [Route("[controller]")]
-    public class UploadFileController(IFileRepository fileRepository) : Controller
+    public class UploadFileController(IFileRepository fileRepository) : Microsoft.AspNetCore.Mvc.Controller
     {
         [HttpPost("Upload")]
         public async Task<IActionResult> Upload(IFormFile file)

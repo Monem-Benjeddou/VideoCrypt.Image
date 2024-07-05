@@ -49,21 +49,56 @@ namespace VideoCrypt.Image.Api.Controller
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        [HttpPost("delete")]
+        public async Task<IActionResult> Delete([FromForm] IFormFile file)
+        {
+            try
+            {
+                if (file == null)
+                    return BadRequest("File is null.");
 
+                var fileName = Path.GetFileName(file.FileName);
+                if (await S3Utils.FileExistsAsync(fileName))
+                {
+                    return Conflict("File already exists in the bucket.");
+                }
+
+                using (var memoryStream = new MemoryStream())
+                {
+                    await file.CopyToAsync(memoryStream);
+                    memoryStream.Seek(0, SeekOrigin.Begin);
+
+                    await S3Utils.UploadFileAsync(fileName, memoryStream, file.ContentType);
+                }
+
+                return Ok("File uploaded successfully.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
         [HttpGet("image/{fileName}")]
         public async Task<IActionResult> GetImage(string fileName)
         {
             try
             {
-                using var client = _httpClientFactory.CreateClient();
-                var response = await client.GetAsync($"{_baseUrl}/api/file/image/{fileName}");
+                using (var client = _httpClientFactory.CreateClient())
+                {
+                    var response = await client.DeleteAsync($"{_baseUrl}:4000/api/file/delete/{fileName}");
 
-                if (!response.IsSuccessStatusCode)
-                    return response.StatusCode == System.Net.HttpStatusCode.NotFound ?
-                        NotFound("Image not found.") :
-                        StatusCode((int)response.StatusCode, $"Failed to retrieve image: {response.ReasonPhrase}");
-                var imageUrl = await response.Content.ReadAsStringAsync();
-                return Ok(new { Url = imageUrl });
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                            return NotFound("File not found.");
+
+                        return StatusCode((int)response.StatusCode, $"Failed to download file: {response.ReasonPhrase}");
+                    }
+
+                    var fileBytes = await response.Content.ReadAsByteArrayAsync();
+                    return File(fileBytes, "application/octet-stream", fileName);
+                }
             }
             catch (Exception ex)
             {

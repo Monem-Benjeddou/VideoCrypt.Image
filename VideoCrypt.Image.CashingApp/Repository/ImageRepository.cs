@@ -229,7 +229,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
 
         private string GenerateCachedFileUrl(string fileName)
         {
-            return $"http://localhost:4000/cache/{fileName}"; // Change this to the actual URL format
+            return $"http://51.38.80.38:4000/cache/{fileName}";
         }
     }
 }
