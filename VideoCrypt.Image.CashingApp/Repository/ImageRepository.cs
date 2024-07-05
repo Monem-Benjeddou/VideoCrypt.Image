@@ -136,6 +136,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
 
                 var fileList = new List<string>();
                 var cacheDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cache");
+                Console.WriteLine(cacheDirectory);
                 if (!Directory.Exists(cacheDirectory))
                 {
                     Directory.CreateDirectory(cacheDirectory);
