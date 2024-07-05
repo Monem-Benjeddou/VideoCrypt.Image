@@ -4,6 +4,7 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using VideoCrypt.Image.Data;
 using VideoCrypt.Image.Data.Models;
 
@@ -12,17 +13,19 @@ namespace VideoCrypt.Image.CashingApp.Repository
     public class ImageRepository : IImageRepository
     {
         private const string _serviceUrl = "http://10.13.111.3";
-        public const string _serverPort = ":9000";
-        const string _accessKey = "Qqt3KMXNlK4iCKqPhgEd";
-        const string _secretKey = "Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6";
-        private readonly string _sourceBucket = "imagesbucket";
+        private const string _serverPort = ":9000";
+        private const string _accessKey = "Qqt3KMXNlK4iCKqPhgEd";
+        private const string _secretKey = "Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6";
+        private const string _sourceBucket = "imagesbucket";
+        
         private readonly ApplicationDbContext _context;
         private readonly AmazonS3Client _s3Client;
+        private readonly ILogger<ImageRepository> _logger;
 
-        public ImageRepository(ApplicationDbContext context)
+        public ImageRepository(ApplicationDbContext context, ILogger<ImageRepository> logger)
         {
             _context = context;
-            
+            _logger = logger;
 
             var config = new AmazonS3Config
             {
@@ -36,9 +39,12 @@ namespace VideoCrypt.Image.CashingApp.Repository
 
         public async Task<string> GetSharedFileUrlAsync(string fileName)
         {
+            _logger.LogInformation($"Attempting to retrieve URL for file: {fileName}");
+
             var cachedImage = await _context.ImageMetadata.FirstOrDefaultAsync(i => i.FileName == fileName);
             if (cachedImage != null)
             {
+                _logger.LogInformation($"File {fileName} found in cache with URL: {cachedImage.Url}");
                 return cachedImage.Url;
             }
 
@@ -49,11 +55,13 @@ namespace VideoCrypt.Image.CashingApp.Repository
 
                 if (!Directory.Exists(cacheDirectory))
                 {
+                    _logger.LogInformation($"Creating cache directory: {cacheDirectory}");
                     Directory.CreateDirectory(cacheDirectory);
                 }
 
                 var cacheFilePath = Path.Combine(cacheDirectory, fileName);
                 await File.WriteAllBytesAsync(cacheFilePath, fileBytes);
+                _logger.LogInformation($"File {fileName} cached at: {cacheFilePath}");
 
                 var url = GenerateCachedFileUrl(fileName);
 
@@ -67,12 +75,13 @@ namespace VideoCrypt.Image.CashingApp.Repository
 
                 _context.ImageMetadata.Add(newImageMetadata);
                 await _context.SaveChangesAsync();
+                _logger.LogInformation($"Metadata for {fileName} saved in database with URL: {url}");
 
                 return url;
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error encountered: '{e.Message}' when fetching or caching file");
+                _logger.LogError($"Error encountered: '{e.Message}' when fetching or caching file");
                 throw;
             }
         }
@@ -81,6 +90,8 @@ namespace VideoCrypt.Image.CashingApp.Repository
         {
             try
             {
+                _logger.LogInformation($"Attempting to download file: {fileName} from bucket: {bucketName}");
+
                 var request = new GetObjectRequest
                 {
                     BucketName = bucketName,
@@ -91,29 +102,23 @@ namespace VideoCrypt.Image.CashingApp.Repository
                 using (var memoryStream = new MemoryStream())
                 {
                     await response.ResponseStream.CopyToAsync(memoryStream);
+                    _logger.LogInformation($"File: {fileName} downloaded successfully");
                     return memoryStream.ToArray();
                 }
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error encountered: '{e.Message}' when downloading an object");
+                _logger.LogError($"Error encountered: '{e.Message}' when downloading an object");
                 throw;
             }
-        }
-
-        private string GetContinuationToken(int page, int pageSize)
-        {
-            if (page <= 1)
-                return null;
-
-            int skip = (page - 1) * pageSize;
-            return Convert.ToBase64String(Encoding.UTF8.GetBytes($"skip={skip}"));
         }
 
         public async Task<List<string>> ListImagesAsync(int page, int pageSize)
         {
             try
             {
+                _logger.LogInformation($"Listing images, Page: {page}, PageSize: {pageSize}");
+
                 var request = new ListObjectsV2Request
                 {
                     BucketName = _sourceBucket,
@@ -125,11 +130,11 @@ namespace VideoCrypt.Image.CashingApp.Repository
 
                 if (response.HttpStatusCode != System.Net.HttpStatusCode.OK)
                 {
+                    _logger.LogError($"Error listing files: {response.HttpStatusCode}");
                     throw new Exception($"Error listing files: {response.HttpStatusCode}");
                 }
 
                 var fileList = new List<string>();
-
                 var cacheDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cache");
                 if (!Directory.Exists(cacheDirectory))
                 {
@@ -172,7 +177,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error encountered: '{e.Message}' when listing files");
+                _logger.LogError($"Error encountered: '{e.Message}' when listing files");
                 throw;
             }
         }
@@ -181,15 +186,18 @@ namespace VideoCrypt.Image.CashingApp.Repository
         {
             try
             {
+                _logger.LogInformation($"Attempting to delete file: {fileName} from bucket");
+
                 var request = new DeleteObjectRequest
                 {
                     BucketName = _sourceBucket,
                     Key = fileName
                 };
                 var response = await _s3Client.DeleteObjectAsync(request);
-                
+
                 if (response.HttpStatusCode != System.Net.HttpStatusCode.OK)
                 {
+                    _logger.LogError($"Error deleting: {response.HttpStatusCode}");
                     throw new Exception($"Error deleting: {response.HttpStatusCode}");
                 }
 
@@ -197,7 +205,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error encountered: '{e.Message}' when deleting file.");
+                _logger.LogError($"Error encountered: '{e.Message}' when deleting file.");
                 throw;
             }
         }
@@ -206,6 +214,8 @@ namespace VideoCrypt.Image.CashingApp.Repository
         {
             try
             {
+                _logger.LogInformation($"Attempting to delete cached file: {fileName}");
+
                 var cachedImage = await _context.ImageMetadata.FirstOrDefaultAsync(i => i.FileName == fileName);
                 if (cachedImage != null)
                 {
@@ -217,20 +227,32 @@ namespace VideoCrypt.Image.CashingApp.Repository
                 if (cacheFilePath != null && File.Exists(cacheFilePath))
                 {
                     File.Delete(cacheFilePath);
+                    _logger.LogInformation($"Cached file {fileName} deleted from path: {cacheFilePath}");
                 }
 
                 return true;
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error encountered: '{e.Message}' when deleting cached file.");
+                _logger.LogError($"Error encountered: '{e.Message}' when deleting cached file.");
                 throw;
             }
         }
 
         private string GenerateCachedFileUrl(string fileName)
         {
-            return $"http://51.38.80.38:4000/cache/{fileName}";
+            var url = $"http://51.38.80.38:4000/cache/{fileName}";
+            _logger.LogInformation($"Generated URL for cached file: {url}");
+            return url;
+        }
+
+        private string GetContinuationToken(int page, int pageSize)
+        {
+            if (page <= 1)
+                return null;
+
+            int skip = (page - 1) * pageSize;
+            return Convert.ToBase64String(Encoding.UTF8.GetBytes($"skip={skip}"));
         }
     }
 }
