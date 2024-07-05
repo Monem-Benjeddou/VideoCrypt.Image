@@ -11,23 +11,19 @@ namespace VideoCrypt.Image.CashingApp.Repository
 {
     public class ImageRepository : IImageRepository
     {
-        private readonly string _serviceUrl;
-        private readonly string _serverPort;
-        private readonly string _accessKey;
-        private readonly string _secretKey;
+        private const string _serviceUrl = "http://10.13.111.3";
+        public const string _serverPort = ":9000";
+        const string _accessKey = "Qqt3KMXNlK4iCKqPhgEd";
+        const string _secretKey = "Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6";
+        public const string SourceBucket = "imagesbucket";
         private readonly string _sourceBucket;
         private readonly ApplicationDbContext _context;
         private readonly AmazonS3Client _s3Client;
 
-        public ImageRepository(ApplicationDbContext context, IConfiguration configuration)
+        public ImageRepository(ApplicationDbContext context)
         {
             _context = context;
-
-            _serviceUrl = configuration["S3:ServiceUrl"];
-            _serverPort = configuration["S3:ServerPort"];
-            _accessKey = configuration["S3:AccessKey"];
-            _secretKey = configuration["S3:SecretKey"];
-            _sourceBucket = configuration["S3:SourceBucket"];
+            
 
             var config = new AmazonS3Config
             {
