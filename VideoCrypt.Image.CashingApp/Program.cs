@@ -18,10 +18,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-var env = app.Environment;
+var cachePath = Path.Combine(app.Environment.ContentRootPath, "cache");
+if (!Directory.Exists(cachePath))
+{
+    Directory.CreateDirectory(cachePath);
+}
+
+// Configure static file serving
 app.UseStaticFiles(new StaticFileOptions
 {
-    FileProvider = new PhysicalFileProvider(Path.Combine(env.ContentRootPath, "cache")),
+    FileProvider = new PhysicalFileProvider(cachePath),
     RequestPath = "/cache"
 });
 
