@@ -1,14 +1,11 @@
-@model List<string>
-@{
-    ViewData["Title"] = "Image Gallery";
-}
-
+@model ImagesGalleryComponent
 <div class="container mt-5">
     <h2 class="text-center mb-4">Image Gallery</h2>
     <div class="row">
-        @if (Model != null && Model.Any())
+        @if (Model.Images.Value != null && Model.Images is not null)
         {
-            foreach (var imageUrl in Model)
+            var images = await Model.Images.Value;
+            foreach (var imageUrl in images)
             {
                 <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
                     <div class="card">
