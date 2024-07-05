@@ -20,7 +20,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
     network_mode: host
     volumes:
-      - videocryptimage_cache_volume:/app/cache
+      - videocryptimage_cache_volume:/
   videocrypt-main:
     build:
       context: .
