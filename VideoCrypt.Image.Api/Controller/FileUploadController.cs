@@ -49,29 +49,23 @@ namespace VideoCrypt.Image.Api.Controller
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-        [HttpPost("delete")]
-        public async Task<IActionResult> Delete([FromForm] IFormFile file)
+        [HttpDelete("{fileName}")]
+        public async Task<IActionResult> DeleteImage(string fileName)
         {
             try
             {
-                if (file == null)
-                    return BadRequest("File is null.");
+                using var client = _httpClientFactory.CreateClient();
+                var response = await client.DeleteAsync($"{_baseUrl}/api/file/{fileName}");
 
-                var fileName = Path.GetFileName(file.FileName);
-                if (await S3Utils.FileExistsAsync(fileName))
+                if (!response.IsSuccessStatusCode)
                 {
-                    return Conflict("File already exists in the bucket.");
+                    if (response.StatusCode == HttpStatusCode.NotFound)
+                        return NotFound("File not found.");
+                    
+                    return StatusCode((int)response.StatusCode, $"Failed to delete file: {response.ReasonPhrase}");
                 }
 
-                using (var memoryStream = new MemoryStream())
-                {
-                    await file.CopyToAsync(memoryStream);
-                    memoryStream.Seek(0, SeekOrigin.Begin);
-
-                    await S3Utils.UploadFileAsync(fileName, memoryStream, file.ContentType);
-                }
-
-                return Ok("File uploaded successfully.");
+                return Ok($"File '{fileName}' deleted successfully.");
             }
             catch (Exception ex)
             {
@@ -84,21 +78,15 @@ namespace VideoCrypt.Image.Api.Controller
         {
             try
             {
-                using (var client = _httpClientFactory.CreateClient())
-                {
-                    var response = await client.DeleteAsync($"{_baseUrl}:4000/api/file/delete/{fileName}");
+                using var client = _httpClientFactory.CreateClient();
+                var response = await client.GetAsync($"{_baseUrl}/api/file/image/{fileName}");
 
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                            return NotFound("File not found.");
-
-                        return StatusCode((int)response.StatusCode, $"Failed to download file: {response.ReasonPhrase}");
-                    }
-
-                    var fileBytes = await response.Content.ReadAsByteArrayAsync();
-                    return File(fileBytes, "application/octet-stream", fileName);
-                }
+                if (!response.IsSuccessStatusCode)
+                    return response.StatusCode == System.Net.HttpStatusCode.NotFound ?
+                        NotFound("Image not found.") :
+                        StatusCode((int)response.StatusCode, $"Failed to retrieve image: {response.ReasonPhrase}");
+                var imageUrl = await response.Content.ReadAsStringAsync();
+                return Ok(new { Url = imageUrl });
             }
             catch (Exception ex)
             {

@@ -1,4 +1,4 @@
-@model ImagesGalleryComponent
+@model VideoCrypt.Image.Main.Pages.Components.ImagesGalleryComponent
 <div class="container mt-5">
     <h2 class="text-center mb-4">Image Gallery</h2>
     <div class="row">
@@ -11,10 +11,7 @@
             <div class="card">
                 <img src="@imageUrl" class="card-img-top gallery-image" data-bs-toggle="modal" data-bs-target="#imageModal" data-bs-src="@imageUrl">
                 <div class="card-body text-center">
-                    <form method="post" action="/Image/deleteImage">
-                        <input type="hidden" name="imageUrl" value="@imageUrl">
-                        <button type="submit" class="btn btn-danger">Delete</button>
-                    </form>
+                    <button class="btn btn-danger" onclick="deleteImage('@imageUrl')">Delete</button>
                 </div>
             </div>
         </div>
@@ -32,10 +29,10 @@
     <div class="row justify-content-center mt-4">
         <nav aria-label="Page navigation example">
             <ul class="pagination">
-                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                @for (int i = 1; i <= Model.TotalPages; i++)
                 {
-                <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
-                    <a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
+                <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
+                    <a class="page-link" href="@Url.Page("/ImageGallery", new { page = i, pageSize = Model.PageSize })">@i</a>
                 </li>
                 }
             </ul>

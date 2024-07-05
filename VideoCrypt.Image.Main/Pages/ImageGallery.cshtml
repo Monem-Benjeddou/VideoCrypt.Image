@@ -5,5 +5,5 @@
 
 
 <div>
-    @(await Component.Hydro<ImagesGalleryComponent>())
+    @(await Component.Hydro<ImagesGalleryComponent>(new { CurrentPage = Model.CurrentPage, PageSize = Model.PageSize }))
 </div>
