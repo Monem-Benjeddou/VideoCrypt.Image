@@ -8,9 +8,11 @@ WORKDIR /src
 
 # Copy the project file and restore dependencies
 COPY VideoCrypt.Image.Api/VideoCrypt.Image.Api.csproj VideoCrypt.Image.Api/
+COPY ../VideoCrypt.Image.Data/VideoCrypt.Image.Data.csproj VideoCrypt.Image.Data/
 RUN dotnet restore "VideoCrypt.Image.Api/VideoCrypt.Image.Api.csproj"
 
 COPY VideoCrypt.Image.Api/ VideoCrypt.Image.Api/
+COPY ../VideoCrypt.Image.Data/ VideoCrypt.Image.Data/
 WORKDIR "/src/VideoCrypt.Image.Api"
 RUN dotnet build "VideoCrypt.Image.Api.csproj" -c Release -o /app/build
 

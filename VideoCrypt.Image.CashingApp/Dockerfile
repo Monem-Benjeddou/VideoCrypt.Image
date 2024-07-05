@@ -3,16 +3,16 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 ENV ASPNETCORE_URLS=http://+:4000
 
-RUN mkdir -p /path/to/shared/cache/directory
-
+# Use the official .NET SDK image for the build stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy the project file and restore dependencies
 COPY VideoCrypt.Image.CashingApp/VideoCrypt.Image.CashingApp.csproj VideoCrypt.Image.CashingApp/
+COPY ../VideoCrypt.Image.Data/VideoCrypt.Image.Data.csproj VideoCrypt.Image.Data/
 RUN dotnet restore "VideoCrypt.Image.CashingApp/VideoCrypt.Image.CashingApp.csproj"
 
 COPY VideoCrypt.Image.CashingApp/ VideoCrypt.Image.CashingApp/
+COPY ../VideoCrypt.Image.Data/ VideoCrypt.Image.Data/
 WORKDIR "/src/VideoCrypt.Image.CashingApp"
 RUN dotnet build "VideoCrypt.Image.CashingApp.csproj" -c Release -o /app/build
 
@@ -22,4 +22,7 @@ RUN dotnet publish "VideoCrypt.Image.CashingApp.csproj" -c Release -o /app/publi
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+RUN mkdir -p /path/to/shared/cache/directory
+
 ENTRYPOINT ["dotnet", "VideoCrypt.Image.CashingApp.dll"]
