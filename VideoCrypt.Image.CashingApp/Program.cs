@@ -24,7 +24,6 @@ if (!Directory.Exists(cachePath))
     Directory.CreateDirectory(cachePath);
 }
 
-// Configure static file serving
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(cachePath),

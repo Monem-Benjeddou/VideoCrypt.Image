@@ -1,3 +1,4 @@
+version: '3.8'
 
 services:
   videocrypt-api:
@@ -9,7 +10,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     network_mode: host
-    
+  
   videocrypt-caching-app:
     build:
       context: ..
@@ -18,9 +19,10 @@ services:
       - "4000:4000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-    network_mode: host
     volumes:
-      - videocryptimage_cache_volume:/cashe
+      - videocryptimage_cache_volume:/cache
+    network_mode: host
+
   videocrypt-main:
     build:
       context: .
@@ -30,7 +32,6 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     network_mode: host
-
 
 volumes:
   videocryptimage_cache_volume:

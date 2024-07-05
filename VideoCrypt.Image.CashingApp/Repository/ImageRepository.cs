@@ -3,7 +3,6 @@ using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using VideoCrypt.Image.Data;
 using VideoCrypt.Image.Data.Models;
@@ -51,7 +50,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
             try
             {
                 var fileBytes = await DownloadFileAsync(fileName, _sourceBucket);
-                var cacheDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cache");
+                var cacheDirectory = Path.Combine("/app/cache");
 
                 if (!Directory.Exists(cacheDirectory))
                 {
@@ -135,8 +134,8 @@ namespace VideoCrypt.Image.CashingApp.Repository
                 }
 
                 var fileList = new List<string>();
-                var cacheDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cache");
-                Console.WriteLine(cacheDirectory);
+                var cacheDirectory = Path.Combine("/app/cache");
+                
                 if (!Directory.Exists(cacheDirectory))
                 {
                     Directory.CreateDirectory(cacheDirectory);
