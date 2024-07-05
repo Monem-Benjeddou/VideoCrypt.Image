@@ -3,6 +3,7 @@ using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using VideoCrypt.Image.Data;
 using VideoCrypt.Image.Data.Models;
 
@@ -10,26 +11,31 @@ namespace VideoCrypt.Image.CashingApp.Repository
 {
     public class ImageRepository : IImageRepository
     {
-        private const string ServiceUrl = "http://10.13.111.3";
-        public const string ServerPort = ":9000";
-        const string AccessKey = "Qqt3KMXNlK4iCKqPhgEd";
-        const string SecretKey = "Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6";
-        public const string SourceBucket = "imagesbucket";
-
+        private readonly string _serviceUrl;
+        private readonly string _serverPort;
+        private readonly string _accessKey;
+        private readonly string _secretKey;
+        private readonly string _sourceBucket;
         private readonly ApplicationDbContext _context;
         private readonly AmazonS3Client _s3Client;
 
-        public ImageRepository(ApplicationDbContext context)
+        public ImageRepository(ApplicationDbContext context, IConfiguration configuration)
         {
             _context = context;
 
+            _serviceUrl = configuration["S3:ServiceUrl"];
+            _serverPort = configuration["S3:ServerPort"];
+            _accessKey = configuration["S3:AccessKey"];
+            _secretKey = configuration["S3:SecretKey"];
+            _sourceBucket = configuration["S3:SourceBucket"];
+
             var config = new AmazonS3Config
             {
-                ServiceURL = ServiceUrl + ServerPort,
+                ServiceURL = _serviceUrl + _serverPort,
                 ForcePathStyle = true
             };
 
-            var credentials = new BasicAWSCredentials(AccessKey, SecretKey);
+            var credentials = new BasicAWSCredentials(_accessKey, _secretKey);
             _s3Client = new AmazonS3Client(credentials, config);
         }
 
@@ -43,7 +49,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
 
             try
             {
-                var fileBytes = await DownloadFileAsync(fileName, SourceBucket);
+                var fileBytes = await DownloadFileAsync(fileName, _sourceBucket);
                 var cacheDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cache");
 
                 if (!Directory.Exists(cacheDirectory))
@@ -115,7 +121,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
             {
                 var request = new ListObjectsV2Request
                 {
-                    BucketName = SourceBucket,
+                    BucketName = _sourceBucket,
                     MaxKeys = pageSize,
                     ContinuationToken = GetContinuationToken(page, pageSize)
                 };
@@ -145,7 +151,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
                     }
                     else
                     {
-                        var fileBytes = await DownloadFileAsync(s3Object.Key, SourceBucket);
+                        var fileBytes = await DownloadFileAsync(s3Object.Key, _sourceBucket);
                         var cacheFilePath = Path.Combine(cacheDirectory, s3Object.Key);
 
                         await File.WriteAllBytesAsync(cacheFilePath, fileBytes);
@@ -182,7 +188,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
             {
                 var request = new DeleteObjectRequest
                 {
-                    BucketName = SourceBucket,
+                    BucketName = _sourceBucket,
                     Key = fileName
                 };
                 var response = await _s3Client.DeleteObjectAsync(request);
