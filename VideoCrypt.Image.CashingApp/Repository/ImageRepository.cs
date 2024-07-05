@@ -15,8 +15,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
         public const string _serverPort = ":9000";
         const string _accessKey = "Qqt3KMXNlK4iCKqPhgEd";
         const string _secretKey = "Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6";
-        public const string SourceBucket = "imagesbucket";
-        private readonly string _sourceBucket;
+        private readonly string _sourceBucket = "imagesbucket";
         private readonly ApplicationDbContext _context;
         private readonly AmazonS3Client _s3Client;
 
