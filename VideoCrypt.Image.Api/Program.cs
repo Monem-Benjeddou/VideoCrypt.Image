@@ -13,6 +13,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAll",
         builder =>
         {
+            //http://51.38.80.38
             builder.WithOrigins("http://51.38.80.38:8080")
                 .AllowAnyMethod()
                 .AllowAnyHeader()

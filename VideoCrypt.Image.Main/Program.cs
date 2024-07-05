@@ -27,6 +27,7 @@ builder.Services.AddDataProtection()
     .SetApplicationName("VideoCryptImage");
 builder.Services.AddHttpClient<AuthenticationService>(client =>
 {
+    //http://51.38.80.38:7003
     client.BaseAddress = new Uri("http://51.38.80.38:7003");
 }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
 {

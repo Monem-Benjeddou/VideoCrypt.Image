@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using VideoCrypt.Image.Server.Repository;
+using VideoCrypt.Image.CashingApp.Repository;
 
-namespace VideoCrypt.Image.Server.Controllers
+namespace VideoCrypt.Image.CashingApp.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

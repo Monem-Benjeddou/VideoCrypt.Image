@@ -1,7 +1,6 @@
 using System.Net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using VideoCrypt.Image.Main.Utils;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -12,7 +11,9 @@ namespace VideoCrypt.Image.Api.Controller
     [Route("api/[controller]")]
     public class FileController : ControllerBase
     {
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IHttpClientFactory _httpClientFactory; 
+        private string _baseUrl = "http://51.38.80.38:4000";
+        //private string _baseUrl = "http://localhost:4000";
 
         public FileController(IHttpClientFactory httpClientFactory)
         {
@@ -55,7 +56,7 @@ namespace VideoCrypt.Image.Api.Controller
             try
             {
                 using var client = _httpClientFactory.CreateClient();
-                var response = await client.GetAsync($"http://51.38.80.38:4000/api/file/image/{fileName}");
+                var response = await client.GetAsync($"{_baseUrl}/api/file/image/{fileName}");
 
                 if (!response.IsSuccessStatusCode)
                     return response.StatusCode == System.Net.HttpStatusCode.NotFound ?
@@ -78,7 +79,7 @@ namespace VideoCrypt.Image.Api.Controller
             {
                 using (var client = _httpClientFactory.CreateClient())
                 {
-                    var response = await client.GetAsync($"http://51.38.80.38:4000/api/file/download/{fileName}");
+                    var response = await client.GetAsync($"{_baseUrl}:4000/api/file/download/{fileName}");
 
                     if (!response.IsSuccessStatusCode)
                     {
@@ -105,11 +106,13 @@ namespace VideoCrypt.Image.Api.Controller
             try
             {
                 using var client = _httpClientFactory.CreateClient();
-                var response = await client.GetAsync($"http://51.38.80.38:4000/api/file/list?page={page}&pageSize={pageSize}");
+                var response = await client.GetAsync($"{_baseUrl}/api/Image/list?page={page}&pageSize={pageSize}");
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    return response.StatusCode == HttpStatusCode.NotFound ? NotFound("No files found.") : StatusCode((int)response.StatusCode, $"Failed to get files: {response.ReasonPhrase}");
+                    return response.StatusCode == HttpStatusCode.NotFound ?
+                        NotFound("No files found.") : 
+                        StatusCode((int)response.StatusCode, $"Failed to get files: {response.ReasonPhrase}");
                 }
 
                 var responseBody = await response.Content.ReadAsStringAsync();

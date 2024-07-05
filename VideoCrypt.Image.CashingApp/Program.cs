@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using VideoCrypt.Image.Data;
-using VideoCrypt.Image.Server.Repository;
+using VideoCrypt.Image.CashingApp.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 

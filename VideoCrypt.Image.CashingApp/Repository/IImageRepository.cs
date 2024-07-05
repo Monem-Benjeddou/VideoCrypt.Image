@@ -1,4 +1,4 @@
-namespace VideoCrypt.Image.Server.Repository
+namespace VideoCrypt.Image.CashingApp.Repository
 {
     public interface IImageRepository
     {
