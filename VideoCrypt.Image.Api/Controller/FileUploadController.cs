@@ -83,22 +83,26 @@ namespace VideoCrypt.Image.Api.Controller
             try
             {
                 using var connection = _context.CreateConnection();
-                ImageMetadata? cachedImage = 
-                    await connection.QueryFirstOrDefaultAsync<ImageMetadata>("SELECT * FROM ImageMetadata WHERE FileName = @FileName", new { FileName = fileName });          
-                if (cachedImage is not null)
-                {
+                var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(
+                    "SELECT * FROM image_metadata WHERE file_name = @FileName", new { FileName = fileName });
+
+                if (cachedImage != null)
                     return Ok(new { Url = cachedImage.Url });
-                }
-                
+
                 using var client = CreateAuthorizedClient();
                 var response = await client.GetAsync($"{_baseUrl}/api/file/image/{fileName}");
 
-                if (!response.IsSuccessStatusCode)
-                    return response.StatusCode == System.Net.HttpStatusCode.NotFound ?
-                        NotFound("Image not found.") :
-                        StatusCode((int)response.StatusCode, $"Failed to retrieve image: {response.ReasonPhrase}");
-                var imageUrl = await response.Content.ReadAsStringAsync();
-                return Ok(new { Url = imageUrl });
+                if (response.IsSuccessStatusCode)
+                {
+                    var imageUrl = await response.Content.ReadAsStringAsync();
+                    return Ok(new { Url = imageUrl });
+                }
+
+                return response.StatusCode switch
+                {
+                    HttpStatusCode.NotFound => NotFound("Image not found."),
+                    _ => StatusCode((int)response.StatusCode, $"Failed to retrieve image: {response.ReasonPhrase}")
+                };
             }
             catch (Exception ex)
             {
@@ -106,6 +110,7 @@ namespace VideoCrypt.Image.Api.Controller
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
 
         [HttpGet("download/{fileName}")]
         public async Task<IActionResult> DownloadFile(string fileName)
