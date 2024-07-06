@@ -55,7 +55,7 @@ namespace VideoCrypt.Image.Api.Controller
             try
             {
                 using var client = _httpClientFactory.CreateClient();
-                var response = await client.DeleteAsync($"{_baseUrl}/api/file/{fileName}");
+                var response = await client.DeleteAsync($"{_baseUrl}/api/Image/{fileName}");
 
                 if (!response.IsSuccessStatusCode)
                 {

@@ -195,13 +195,9 @@ namespace VideoCrypt.Image.CashingApp.Repository
                 };
                 var response = await _s3Client.DeleteObjectAsync(request);
 
-                if (response.HttpStatusCode != System.Net.HttpStatusCode.OK)
-                {
-                    _logger.LogError($"Error deleting: {response.HttpStatusCode}");
-                    throw new Exception($"Error deleting: {response.HttpStatusCode}");
-                }
-
-                return true;
+                if (string.IsNullOrWhiteSpace(response.DeleteMarker)) return true;
+                _logger.LogError($"Error deleting: {response.HttpStatusCode}");
+                throw new Exception($"Error deleting: {response.HttpStatusCode}");
             }
             catch (Exception e)
             {
