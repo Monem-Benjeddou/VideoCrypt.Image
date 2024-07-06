@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using VideoCrypt.Image.Data;
@@ -7,6 +8,9 @@ using VideoCrypt.Image.Server.Authorization;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddAuthentication("DefaultScheme")
+    .AddScheme<AuthenticationSchemeOptions, CustomAuthenticationHandler>("DefaultScheme", null);
+
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy(AccessKeyAuthorization.PolicyName, policy =>

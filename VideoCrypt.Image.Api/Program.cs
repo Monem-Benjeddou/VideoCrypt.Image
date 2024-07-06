@@ -21,7 +21,10 @@ builder.Services.AddCors(options =>
                 .AllowCredentials();
         });
 });
-builder.Services.AddHttpClient();
+builder.Services.AddHttpClient("AuthorizedClient", client =>
+{
+    client.DefaultRequestHeaders.Add("AccessKey", "Qqt3KMXNlK4iCKqPhgEd");
+});
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("image_db")));
 
