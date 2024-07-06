@@ -16,13 +16,18 @@ public class CustomAuthenticationHandler : AuthenticationHandler<AuthenticationS
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        // Logic for custom authentication can go here.
-        // For now, we will simply succeed the authentication.
+        var headers = Request.Headers;
+        if (!headers.ContainsKey("AccessKey") || headers["AccessKey"] != "Qqt3KMXNlK4iCKqPhgEd")
+        {
+            return Task.FromResult(AuthenticateResult.Fail("Invalid Access Key"));
+        }
+
         var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "DefaultUser") };
-        var identity = new ClaimsIdentity(claims, "DefaultScheme");
+        var identity = new ClaimsIdentity(claims, Scheme.Name);
         var principal = new ClaimsPrincipal(identity);
-        var ticket = new AuthenticationTicket(principal, "DefaultScheme");
+        var ticket = new AuthenticationTicket(principal, Scheme.Name);
 
         return Task.FromResult(AuthenticateResult.Success(ticket));
     }
+}
 }
