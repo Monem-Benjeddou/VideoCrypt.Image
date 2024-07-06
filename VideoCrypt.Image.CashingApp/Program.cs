@@ -2,10 +2,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using VideoCrypt.Image.Data;
 using VideoCrypt.Image.CashingApp.Repository;
+using VideoCrypt.Image.Server.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(AccessKeyAuthorization.PolicyName, policy =>
+        policy.Requirements.Add(new AccessKeyRequirement("Qqt3KMXNlK4iCKqPhgEd")));
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IImageRepository, ImageRepository>();

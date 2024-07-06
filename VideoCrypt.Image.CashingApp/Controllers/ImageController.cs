@@ -16,17 +16,8 @@ namespace VideoCrypt.Image.CashingApp.Controllers
         }
 
         [HttpGet("{fileName}")]
-        public async Task<IActionResult> GetImageUrl(string fileName, string accessKey, string secretKey, string serviceUrl)
+        public async Task<IActionResult> GetImageUrl(string fileName)
         {
-            if (string.IsNullOrWhiteSpace(accessKey))
-                return BadRequest("AccessKey must be provided.");
-    
-            if (string.IsNullOrWhiteSpace(secretKey))
-                return BadRequest("SecretKey must be provided.");
-    
-            if (string.IsNullOrWhiteSpace(serviceUrl))
-                return BadRequest("ServiceUrl must be provided.");
-
             try
             {
                 var url = await _imageRepository.GetSharedFileUrlAsync(fileName);

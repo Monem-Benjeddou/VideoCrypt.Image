@@ -16,7 +16,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
         private const string _accessKey = "Qqt3KMXNlK4iCKqPhgEd";
         private const string _secretKey = "Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6";
         private const string _sourceBucket = "imagesbucket";
-        
+
         private readonly ApplicationDbContext _context;
         private readonly AmazonS3Client _s3Client;
         private readonly ILogger<ImageRepository> _logger;
@@ -135,11 +135,13 @@ namespace VideoCrypt.Image.CashingApp.Repository
 
                 var fileList = new List<string>();
                 var cacheDirectory = Path.Combine("/app/cache");
-                
+
                 if (!Directory.Exists(cacheDirectory))
                 {
                     Directory.CreateDirectory(cacheDirectory);
                 }
+
+                var imageMetadataList = new List<ImageMetadata>();
 
                 foreach (var s3Object in response.S3Objects)
                 {
@@ -147,7 +149,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
 
                     if (cachedImage != null)
                     {
-                        fileList.Add(cachedImage.Url);
+                        imageMetadataList.Add(cachedImage);
                     }
                     else
                     {
@@ -169,9 +171,15 @@ namespace VideoCrypt.Image.CashingApp.Repository
                         _context.ImageMetadata.Add(newImageMetadata);
                         await _context.SaveChangesAsync();
 
-                        fileList.Add(url);
+                        imageMetadataList.Add(newImageMetadata);
                     }
                 }
+
+                // Order the list by CreatedAt
+                var orderedImageMetadataList = imageMetadataList.OrderByDescending(im => im.CreatedAt).ToList();
+
+                // Convert to a list of URLs
+                fileList = orderedImageMetadataList.Select(im => im.Url).ToList();
 
                 return fileList;
             }

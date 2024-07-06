@@ -1,8 +1,11 @@
 using System.Net;
+using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using VideoCrypt.Image.Main.Utils;
-using JsonSerializer = System.Text.Json.JsonSerializer;
+using VideoCrypt.Image.Api.Utilities;
+using VideoCrypt.Image.Data;
+using System.Text.Json;
+using VideoCrypt.Image.Data.Models;
 
 namespace VideoCrypt.Image.Api.Controller
 {
@@ -14,10 +17,20 @@ namespace VideoCrypt.Image.Api.Controller
         private readonly IHttpClientFactory _httpClientFactory; 
         private string _baseUrl = "http://51.38.80.38:4000";
         //private string _baseUrl = "http://localhost:4000";
-
-        public FileController(IHttpClientFactory httpClientFactory)
+        private const string AccessKey = "Qqt3KMXNlK4iCKqPhgEd";
+        private readonly ApplicationDbContext _context;
+        private readonly IImageUploadRepository _imageUploadRepository;
+        public FileController(IHttpClientFactory httpClientFactory,ApplicationDbContext context,IImageUploadRepository imageUploadRepository)
         {
             _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
+            _context = context;
+            _imageUploadRepository = imageUploadRepository;
+        }
+        private HttpClient CreateAuthorizedClient()
+        {
+            var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Add("AccessKey", AccessKey);
+            return client;
         }
         [HttpPost("upload")]
         public async Task<IActionResult> Upload([FromForm] IFormFile file)
@@ -28,7 +41,7 @@ namespace VideoCrypt.Image.Api.Controller
                     return BadRequest("File is null.");
 
                 var fileName = Path.GetFileName(file.FileName);
-                if (await S3Utils.FileExistsAsync(fileName))
+                if (await _imageUploadRepository.FileExistsAsync(fileName))
                 {
                     return Conflict("File already exists in the bucket.");
                 }
@@ -38,9 +51,8 @@ namespace VideoCrypt.Image.Api.Controller
                     await file.CopyToAsync(memoryStream);
                     memoryStream.Seek(0, SeekOrigin.Begin);
 
-                    await S3Utils.UploadFileAsync(fileName, memoryStream, file.ContentType);
+                    await _imageUploadRepository.UploadFileAsync(fileName, memoryStream, file.ContentType);
                 }
-
                 return Ok("File uploaded successfully.");
             }
             catch (Exception ex)
@@ -54,18 +66,12 @@ namespace VideoCrypt.Image.Api.Controller
         {
             try
             {
-                using var client = _httpClientFactory.CreateClient();
+                using var client = CreateAuthorizedClient();
+                
                 var response = await client.DeleteAsync($"{_baseUrl}/api/Image/{fileName}");
 
-                if (!response.IsSuccessStatusCode)
-                {
-                    if (response.StatusCode == HttpStatusCode.NotFound)
-                        return NotFound("File not found.");
-                    
-                    return StatusCode((int)response.StatusCode, $"Failed to delete file: {response.ReasonPhrase}");
-                }
-
-                return Ok($"File '{fileName}' deleted successfully.");
+                if (response.IsSuccessStatusCode) return Ok($"File '{fileName}' deleted successfully.");
+                return response.StatusCode == HttpStatusCode.NotFound ? NotFound("File not found.") : StatusCode((int)response.StatusCode, $"Failed to delete file: {response.ReasonPhrase}");
             }
             catch (Exception ex)
             {
@@ -78,7 +84,15 @@ namespace VideoCrypt.Image.Api.Controller
         {
             try
             {
-                using var client = _httpClientFactory.CreateClient();
+                using var connection = _context.CreateConnection();
+                ImageMetadata? cachedImage = 
+                    await connection.QueryFirstOrDefaultAsync<ImageMetadata>("SELECT * FROM ImageMetadata WHERE FileName = @FileName", new { FileName = fileName });          
+                if (cachedImage is not null)
+                {
+                    return Ok(new { Url = cachedImage.Url });
+                }
+                
+                using var client = CreateAuthorizedClient();
                 var response = await client.GetAsync($"{_baseUrl}/api/file/image/{fileName}");
 
                 if (!response.IsSuccessStatusCode)
@@ -100,9 +114,8 @@ namespace VideoCrypt.Image.Api.Controller
         {
             try
             {
-                using (var client = _httpClientFactory.CreateClient())
-                {
-                    var response = await client.GetAsync($"{_baseUrl}:4000/api/file/download/{fileName}");
+                using var client = CreateAuthorizedClient(); 
+                var response = await client.GetAsync($"{_baseUrl}:4000/api/file/download/{fileName}");
 
                     if (!response.IsSuccessStatusCode)
                     {
@@ -114,7 +127,6 @@ namespace VideoCrypt.Image.Api.Controller
 
                     var fileBytes = await response.Content.ReadAsByteArrayAsync();
                     return File(fileBytes, "application/octet-stream", fileName);
-                }
             }
             catch (Exception ex)
             {
@@ -128,7 +140,7 @@ namespace VideoCrypt.Image.Api.Controller
         {
             try
             {
-                using var client = _httpClientFactory.CreateClient();
+                using var client = CreateAuthorizedClient();
                 var response = await client.GetAsync($"{_baseUrl}/api/Image/list?page={page}&pageSize={pageSize}");
 
                 if (!response.IsSuccessStatusCode)
