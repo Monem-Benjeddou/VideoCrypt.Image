@@ -29,7 +29,6 @@ namespace VideoCrypt.Image.Api.Controller
         private HttpClient CreateAuthorizedClient()
         {
             return _httpClientFactory.CreateClient("AuthorizedClient");
-
         }
         [HttpPost("upload")]
         public async Task<IActionResult> Upload([FromForm] IFormFile file)
