@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using VideoCrypt.Image.CashingApp.Repository;
+using VideoCrypt.Image.Server.Authorization;
 
 namespace VideoCrypt.Image.CashingApp.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [AccessKeyAuthorization]
     public class ImageController : ControllerBase
     {
         private readonly IImageRepository _imageRepository;
