@@ -30,4 +30,3 @@ public class CustomAuthenticationHandler : AuthenticationHandler<AuthenticationS
         return Task.FromResult(AuthenticateResult.Success(ticket));
     }
 }
-}
