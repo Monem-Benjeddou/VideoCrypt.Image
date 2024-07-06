@@ -8,16 +8,21 @@ using VideoCrypt.Image.Server.Authorization;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddAuthentication("DefaultScheme")
+    .AddScheme<AuthenticationSchemeOptions, CustomAuthenticationHandler>("DefaultScheme", null);
+
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy(AccessKeyAuthorization.PolicyName, policy =>
         policy.Requirements.Add(new AccessKeyRequirement("Qqt3KMXNlK4iCKqPhgEd")));
 });
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IImageRepository, ImageRepository>();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("image_db")));
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -25,6 +30,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 var cachePath = Path.Combine(app.Environment.ContentRootPath, "cache");
 if (!Directory.Exists(cachePath))
 {
