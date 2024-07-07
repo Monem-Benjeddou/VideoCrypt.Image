@@ -10,10 +10,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddAuthentication("DefaultScheme")
     .AddScheme<AuthenticationSchemeOptions, CustomAuthenticationHandler>("DefaultScheme", null);
-builder.WebHost.UseKestrel(options =>
-{
-    options.ListenAnyIP(8080); 
-});
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy(AccessKeyAuthorization.PolicyName, policy =>

@@ -24,7 +24,6 @@ namespace VideoCrypt.Image.Api.Controller
         private string _baseUrl = "http://51.38.80.38:4000";
 
         //private string _baseUrl = "http://localhost:4000";
-        private const string AccessKey = "Qqt3KMXNlK4iCKqPhgEd";
 
         private HttpClient CreateAuthorizedClient()
         {
