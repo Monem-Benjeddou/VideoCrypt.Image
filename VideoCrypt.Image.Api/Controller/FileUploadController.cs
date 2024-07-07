@@ -12,24 +12,25 @@ namespace VideoCrypt.Image.Api.Controller
     [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    public class FileController : ControllerBase
+    public class FileController(
+        IHttpClientFactory httpClientFactory,
+        ApplicationDbContext context,
+        IImageUploadRepository imageUploadRepository)
+        : ControllerBase
     {
-        private readonly IHttpClientFactory _httpClientFactory; 
+        private readonly IHttpClientFactory _httpClientFactory = 
+            httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
+
         private string _baseUrl = "http://51.38.80.38:4000";
+
         //private string _baseUrl = "http://localhost:4000";
         private const string AccessKey = "Qqt3KMXNlK4iCKqPhgEd";
-        private readonly ApplicationDbContext _context;
-        private readonly IImageUploadRepository _imageUploadRepository;
-        public FileController(IHttpClientFactory httpClientFactory,ApplicationDbContext context,IImageUploadRepository imageUploadRepository)
-        {
-            _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
-            _context = context;
-            _imageUploadRepository = imageUploadRepository;
-        }
+
         private HttpClient CreateAuthorizedClient()
         {
             return _httpClientFactory.CreateClient("AuthorizedClient");
         }
+
         [HttpPost("upload")]
         public async Task<IActionResult> Upload([FromForm] IFormFile file)
         {
@@ -39,7 +40,7 @@ namespace VideoCrypt.Image.Api.Controller
                     return BadRequest("File is null.");
 
                 var fileName = Path.GetFileName(file.FileName);
-                if (await _imageUploadRepository.FileExistsAsync(fileName))
+                if (await imageUploadRepository.FileExistsAsync(fileName))
                 {
                     return Conflict("File already exists in the bucket.");
                 }
@@ -49,8 +50,9 @@ namespace VideoCrypt.Image.Api.Controller
                     await file.CopyToAsync(memoryStream);
                     memoryStream.Seek(0, SeekOrigin.Begin);
 
-                    await _imageUploadRepository.UploadFileAsync(fileName, memoryStream, file.ContentType);
+                    await imageUploadRepository.UploadFileAsync(fileName, memoryStream, file.ContentType);
                 }
+
                 return Ok("File uploaded successfully.");
             }
             catch (Exception ex)
@@ -59,17 +61,19 @@ namespace VideoCrypt.Image.Api.Controller
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
         [HttpDelete("{fileName}")]
         public async Task<IActionResult> DeleteImage(string fileName)
         {
             try
             {
                 using var client = CreateAuthorizedClient();
-                
                 var response = await client.DeleteAsync($"{_baseUrl}/api/Image/{fileName}");
 
                 if (response.IsSuccessStatusCode) return Ok($"File '{fileName}' deleted successfully.");
-                return response.StatusCode == HttpStatusCode.NotFound ? NotFound("File not found.") : StatusCode((int)response.StatusCode, $"Failed to delete file: {response.ReasonPhrase}");
+                return response.StatusCode == HttpStatusCode.NotFound
+                    ? NotFound("File not found.")
+                    : StatusCode((int)response.StatusCode, $"Failed to delete file: {response.ReasonPhrase}");
             }
             catch (Exception ex)
             {
@@ -77,12 +81,13 @@ namespace VideoCrypt.Image.Api.Controller
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
         [HttpGet("image/{fileName}")]
         public async Task<IActionResult> GetImage(string fileName)
         {
             try
             {
-                using var connection = _context.CreateConnection();
+                using var connection = context.CreateConnection();
                 var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(
                     "SELECT * FROM image_metadata WHERE file_name = @FileName", new { FileName = fileName });
 
@@ -111,25 +116,23 @@ namespace VideoCrypt.Image.Api.Controller
             }
         }
 
-
         [HttpGet("download/{fileName}")]
         public async Task<IActionResult> DownloadFile(string fileName)
         {
             try
             {
-                using var client = CreateAuthorizedClient(); 
+                using var client = CreateAuthorizedClient();
                 var response = await client.GetAsync($"{_baseUrl}:4000/api/file/download/{fileName}");
+                if (!response.IsSuccessStatusCode)
+                {
+                    if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                        return NotFound("File not found.");
 
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                            return NotFound("File not found.");
+                    return StatusCode((int)response.StatusCode, $"Failed to download file: {response.ReasonPhrase}");
+                }
 
-                        return StatusCode((int)response.StatusCode, $"Failed to download file: {response.ReasonPhrase}");
-                    }
-
-                    var fileBytes = await response.Content.ReadAsByteArrayAsync();
-                    return File(fileBytes, "application/octet-stream", fileName);
+                var fileBytes = await response.Content.ReadAsByteArrayAsync();
+                return File(fileBytes, "application/octet-stream", fileName);
             }
             catch (Exception ex)
             {
@@ -148,14 +151,13 @@ namespace VideoCrypt.Image.Api.Controller
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    return response.StatusCode == HttpStatusCode.NotFound ?
-                        NotFound("No files found.") : 
-                        StatusCode((int)response.StatusCode, $"Failed to get files: {response.ReasonPhrase}");
+                    return response.StatusCode == HttpStatusCode.NotFound
+                        ? NotFound("No files found.")
+                        : StatusCode((int)response.StatusCode, $"Failed to get files: {response.ReasonPhrase}");
                 }
 
                 var responseBody = await response.Content.ReadAsStringAsync();
-                var files = JsonSerializer.Deserialize<List<string>>(responseBody);
-
+                var files = JsonSerializer.Deserialize<PaginatedList<string>>(responseBody);
                 return Ok(files);
             }
             catch (Exception ex)

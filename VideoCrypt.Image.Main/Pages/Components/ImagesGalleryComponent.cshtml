@@ -26,18 +26,7 @@
     </div>
 
     <!-- Pagination -->
-    <div class="row justify-content-center mt-4">
-        <nav aria-label="Page navigation example">
-            <ul class="pagination">
-                @for (int i = 1; i <= Model.TotalPages; i++)
-                {
-                <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
-                    <a class="page-link" href="@Url.Page("/ImageGallery", new { page = i, pageSize = Model.PageSize })">@i</a>
-                </li>
-                }
-            </ul>
-        </nav>
-    </div>
+
 
     <!-- Modal -->
     <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">

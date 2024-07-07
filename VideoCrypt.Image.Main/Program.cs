@@ -15,11 +15,10 @@ using VideoCrypt.Image.Main.Middlewares;
 using VideoCrypt.Image.Main.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.UseKestrel(options =>
-{
-    options.ListenAnyIP(8080); 
-});
-// Configure JWT settings
+// builder.WebHost.UseKestrel(options =>
+// {
+//     options.ListenAnyIP(8080); 
+// });
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var secret = Encoding.ASCII.GetBytes(jwtSettings["Secret"]);
 builder.Services.AddControllers();

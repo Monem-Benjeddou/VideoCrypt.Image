@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using VideoCrypt.Image.Data.Models;
 
 namespace VideoCrypt.Image.Main.Repository
 {
@@ -6,7 +7,7 @@ namespace VideoCrypt.Image.Main.Repository
     {
         Task UploadFileAsync(IFormFile? file);
         Task<byte[]> GetImageAsync(string fileName);
-        Task<List<string>> ListFilesAsync(int page = 1, int pageSize = 10);
+        Task<PaginatedList<string>> ListFilesAsync(int page = 1, int pageSize = 10);
         Task DeleteFileAsync(string fileName);
     }
 }

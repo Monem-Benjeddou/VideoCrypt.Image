@@ -16,8 +16,6 @@ public class ApplicationDbContext :  IdentityDbContext<IdentityUser>
         : base(options)
     {
         _connectionString = configuration.GetConnectionString("image_db");
-        Database.Migrate();
-        Database.EnsureCreated();
     }
     public DbSet<ImageMetadata> ImageMetadata { get; set; }
     protected override void OnModelCreating(ModelBuilder builder)

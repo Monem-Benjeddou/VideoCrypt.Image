@@ -1,4 +1,5 @@
-using System.Text;
+using System.Net;
+using System.Net.Sockets;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
@@ -119,17 +120,16 @@ namespace VideoCrypt.Image.CashingApp.Repository
             }
         }
 
-       public async Task<List<string>> ListImagesAsync(int page, int pageSize)
+        public async Task<PaginatedList<string>> ListImagesAsync(int page, int pageSize)
         {
             try
             {
                 _logger.LogInformation($"Listing images, Page: {page}, PageSize: {pageSize}");
 
+
                 var request = new ListObjectsV2Request
                 {
-                    BucketName = _sourceBucket,
-                    MaxKeys = pageSize,
-                    ContinuationToken = GetContinuationToken(page, pageSize)
+                    BucketName = _sourceBucket
                 };
 
                 var response = await _s3Client.ListObjectsV2Async(request);
@@ -139,8 +139,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
                     _logger.LogError($"Error listing files: {response.HttpStatusCode}");
                     throw new Exception($"Error listing files: {response.HttpStatusCode}");
                 }
-
-                var fileList = new List<string>();
+                List<string> fileList;
                 var cacheDirectory = Path.Combine("/app/cache");
 
                 if (!Directory.Exists(cacheDirectory))
@@ -149,13 +148,17 @@ namespace VideoCrypt.Image.CashingApp.Repository
                 }
 
                 var imageMetadataList = new List<ImageMetadata>();
-
+                var totalCount = response.S3Objects.Count;
                 using (var connection = _context.CreateConnection())
                 {
-                    foreach (var s3Object in response.S3Objects)
+                    var objects = response.S3Objects.OrderBy(x => x.LastModified)
+                        .Skip((page - 1) * pageSize)
+                        .Take(pageSize).ToList();
+                    foreach (var s3Object in objects)
                     {
                         var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(
-                            "SELECT * FROM image_metadata WHERE file_name = @FileName", new { FileName = s3Object.Key });
+                            "SELECT * FROM image_metadata WHERE file_name = @FileName",
+                            new { FileName = s3Object.Key });
 
                         if (cachedImage != null)
                         {
@@ -178,7 +181,8 @@ namespace VideoCrypt.Image.CashingApp.Repository
                                 CreatedAt = DateTime.UtcNow
                             };
 
-                            var sql = "INSERT INTO image_metadata (file_name, cached_file_path, url, created_at) VALUES (@FileName, @CachedFilePath, @Url, @CreatedAt)";
+                            var sql =
+                                "INSERT INTO image_metadata (file_name, cached_file_path, url, created_at) VALUES (@FileName, @CachedFilePath, @Url, @CreatedAt)";
                             await connection.ExecuteAsync(sql, newImageMetadata);
 
                             imageMetadataList.Add(newImageMetadata);
@@ -189,7 +193,15 @@ namespace VideoCrypt.Image.CashingApp.Repository
                 var orderedImageMetadataList = imageMetadataList.OrderByDescending(im => im.CreatedAt).ToList();
                 fileList = orderedImageMetadataList.Select(im => im.Url).ToList();
 
-                return fileList;
+                int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+                return new PaginatedList<string>
+                {
+                    Items = fileList,
+                    PageIndex = page,
+                    TotalPages = totalPages,
+                    ContinuationToken = response.NextContinuationToken
+                };
             }
             catch (Exception e)
             {
@@ -197,6 +209,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
                 throw;
             }
         }
+
         public async Task<bool> DeleteFileFromBucketAsync(string fileName)
         {
             try
@@ -253,18 +266,17 @@ namespace VideoCrypt.Image.CashingApp.Repository
 
         private string GenerateCachedFileUrl(string fileName)
         {
-            var url = $"http://51.38.80.38:4000/cache/{fileName}";
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+            var ip =  host.AddressList
+                .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
+                .Select(ip => ip.ToString())
+                .Where(ip => ip.Contains("51"))
+                .ToList()
+                .FirstOrDefault();
+            
+            var url = $"http://{ip}:4000/cache/{fileName}";
             _logger.LogInformation($"Generated URL for cached file: {url}");
             return url;
-        }
-
-        private string GetContinuationToken(int page, int pageSize)
-        {
-            if (page <= 1)
-                return null;
-
-            int skip = (page - 1) * pageSize;
-            return Convert.ToBase64String(Encoding.UTF8.GetBytes($"skip={skip}"));
         }
     }
 }

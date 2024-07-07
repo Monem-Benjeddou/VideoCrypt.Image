@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
+using VideoCrypt.Image.Data.Models;
 
 namespace VideoCrypt.Image.Main.Repository
 {
@@ -51,19 +52,19 @@ namespace VideoCrypt.Image.Main.Repository
             response.EnsureSuccessStatusCode();
         }
 
-        public async Task<List<string>> ListFilesAsync(int page = 1, int pageSize = 10)
+        public async Task<PaginatedList<string>> ListFilesAsync(int page = 1, int pageSize = 10)
         {
             try
             {
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await GetAccessToken());
-                var response = await _httpClient.GetFromJsonAsync<List<string>>(new Uri($"{_apiBaseUrl}/api/file/list?page={page}&pageSize={pageSize}"));
+                var response = await _httpClient.GetFromJsonAsync<PaginatedList<string>>(new Uri($"{_apiBaseUrl}/api/file/list?page={page}&pageSize={pageSize}"));
 
-                return response ?? new List<string>();
+                return response ?? new PaginatedList<string>();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error: {ex.Message}");
-                return new List<string>();
+                return new PaginatedList<string>();
             }
         }
 

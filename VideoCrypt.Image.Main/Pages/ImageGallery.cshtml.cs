@@ -11,7 +11,7 @@ namespace VideoCrypt.Image.Main.Pages
         public int CurrentPage { get; set; } = 1;
 
         [BindProperty(SupportsGet = true)]
-        public int PageSize { get; set; } = 12;
+        public int PageSize { get; set; } = 6;
 
         public void OnGet()
         {

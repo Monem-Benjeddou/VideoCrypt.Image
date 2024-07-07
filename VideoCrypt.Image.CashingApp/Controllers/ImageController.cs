@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using VideoCrypt.Image.CashingApp.Repository;
-using VideoCrypt.Image.Server.Authorization;
+using VideoCrypt.Image.Data.Models;
 
 namespace VideoCrypt.Image.CashingApp.Controllers
 {
@@ -31,13 +31,14 @@ namespace VideoCrypt.Image.CashingApp.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
         [HttpGet("list")]
         public async Task<IActionResult> ListFiles(int page = 1, int pageSize = 10)
         {
             try
             {
-                var files = await _imageRepository.ListImagesAsync(page, pageSize);
-                return Ok(files);
+                var paginatedList = await _imageRepository.ListImagesAsync(page, pageSize);
+                return Ok(paginatedList);
             }
             catch (Exception ex)
             {
@@ -45,6 +46,7 @@ namespace VideoCrypt.Image.CashingApp.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
         [HttpDelete("{fileName}")]
         public async Task<IActionResult> DeleteImage(string fileName)
         {
