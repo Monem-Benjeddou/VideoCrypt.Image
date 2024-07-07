@@ -20,6 +20,6 @@ public class ImagesGalleryComponent(IFileRepository fileRepository) : HydroCompo
         var allImages = await _fileRepository.ListFilesAsync();
         TotalPages = (int)Math.Ceiling(allImages.TotalPages / (double)PageSize);
         
-        return allImages.Items.Any() ? allImages.Items : new List<string>();
+        return allImages != null && allImages.Items.Any() ? allImages.Items : new List<string>();
     });
 }
