@@ -103,10 +103,6 @@ app.UseHydro(builder.Environment);
 app.MapRazorPages();
 
 app.UseMiddleware<JWTMiddleware>();  
-
-app.MapControllerRoute(
-    name: "Area",
-    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 app.MapControllers();
 
 app.MapControllerRoute(

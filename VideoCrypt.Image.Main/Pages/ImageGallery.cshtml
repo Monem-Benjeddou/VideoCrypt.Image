@@ -1,9 +1,9 @@
-@page "/ImageGallery"
+@page "/ImageGallery/{currentPage}"
 @using Hydro
 @using VideoCrypt.Image.Main.Pages.Components
 @model ImageGallery
 
 
 <div>
-    @(await Component.Hydro<ImagesGalleryComponent>(new { CurrentPage = Model.CurrentPage, PageSize = Model.PageSize }))
+    @(await Component.Hydro<ImagesGalleryComponent>(new { CurrentPage = Model.CurrentPage }))
 </div>

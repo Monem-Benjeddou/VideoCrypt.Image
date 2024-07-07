@@ -9,7 +9,7 @@ public class ImagesGalleryComponent(IFileRepository fileRepository) : HydroCompo
     private Task<List<string>>? _cachedImages;
 
     public int CurrentPage { get; set; }
-    public int PageSize { get; set; } = 6; 
+    public int PageSize { get; set; } = 8; 
     public int TotalPages { get; private set; }
 
     public Cache<Task<List<string>>> Images => Cache(async () =>
@@ -17,8 +17,8 @@ public class ImagesGalleryComponent(IFileRepository fileRepository) : HydroCompo
         if (_cachedImages != null)
             return await _cachedImages;
 
-        var allImages = await _fileRepository.ListFilesAsync();
-        TotalPages = (int)Math.Ceiling(allImages.TotalPages / (double)PageSize);
+        var allImages = await _fileRepository.ListFilesAsync(CurrentPage,PageSize);
+        TotalPages = allImages.TotalPages;
         
         return allImages != null && allImages.Items.Any() ? allImages.Items : new List<string>();
     });

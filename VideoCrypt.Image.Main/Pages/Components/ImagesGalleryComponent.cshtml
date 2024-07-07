@@ -26,7 +26,18 @@
     </div>
 
     <!-- Pagination -->
-
+    <div class="row justify-content-center mt-4">
+        <nav aria-label="Page navigation example">
+            <ul class="pagination">
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
+                    <a class="page-link" href="@Url.Page("/ImageGallery", new { currentPage = i })">@i</a>
+                </li>
+                }
+            </ul>
+        </nav>
+    </div>
 
     <!-- Modal -->
     <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
@@ -42,4 +53,18 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="deleteSuccessModal" tabindex="-1" aria-labelledby="deleteSuccessModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteSuccessModalLabel">Image Deleted</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>The image has been successfully deleted.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+

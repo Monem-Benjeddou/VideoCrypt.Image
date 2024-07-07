@@ -7,7 +7,7 @@ namespace VideoCrypt.Image.Main.Controllers
     [Authorize]
     [ApiController]
     [Route("Image")]
-    public class ImageController : Microsoft.AspNetCore.Mvc.Controller
+    public class ImageController : Controller
     {
         private readonly IFileRepository _fileRepository;
 
