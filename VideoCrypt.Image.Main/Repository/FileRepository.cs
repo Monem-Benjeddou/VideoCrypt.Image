@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using System.Text.Json;
 using VideoCrypt.Image.Main.Models;
 
 namespace VideoCrypt.Image.Main.Repository
@@ -49,9 +50,14 @@ namespace VideoCrypt.Image.Main.Repository
             try
             {
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await GetAccessToken());
-                var response = await _httpClient.GetFromJsonAsync<Models.PaginatedList<string>>(new Uri($"{_apiBaseUrl}/api/file/list?page={page}&pageSize={pageSize}"));
-
-                return response ?? new Models.PaginatedList<string>();
+                var response = await _httpClient.GetAsync(new Uri($"{_apiBaseUrl}/api/file/list?page={page}&pageSize={pageSize}"));
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                };
+                var responseBody = await response.Content.ReadAsStringAsync();
+                var files = JsonSerializer.Deserialize<PaginatedList<string>>(responseBody,options);
+                return files;
             }
             catch (Exception ex)
             {

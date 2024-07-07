@@ -154,9 +154,12 @@ namespace VideoCrypt.Image.Api.Controller
                         ? NotFound("No files found.")
                         : StatusCode((int)response.StatusCode, $"Failed to get files: {response.ReasonPhrase}");
                 }
-
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                };
                 var responseBody = await response.Content.ReadAsStringAsync();
-                var files = JsonSerializer.Deserialize<PaginatedList<string>>(responseBody);
+                var files = JsonSerializer.Deserialize<PaginatedList<string>>(responseBody,options);
                 return Ok(files);
             }
             catch (Exception ex)
