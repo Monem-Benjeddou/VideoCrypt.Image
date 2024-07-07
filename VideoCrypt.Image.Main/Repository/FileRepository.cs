@@ -41,7 +41,7 @@ namespace VideoCrypt.Image.Main.Repository
 
             string uriFileName = Uri.EscapeUriString(fileName);
             
-            var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/api/File/delete/{uriFileName}");
+            var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/api/File/{uriFileName}");
             response.EnsureSuccessStatusCode();
         }
 
