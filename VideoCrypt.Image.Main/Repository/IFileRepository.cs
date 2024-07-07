@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using VideoCrypt.Image.Data.Models;
+using VideoCrypt.Image.Main.Models;
 
 namespace VideoCrypt.Image.Main.Repository
 {

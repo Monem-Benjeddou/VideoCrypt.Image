@@ -1,13 +1,5 @@
-using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication;
-using VideoCrypt.Image.Data.Models;
+using VideoCrypt.Image.Main.Models;
 
 namespace VideoCrypt.Image.Main.Repository
 {
@@ -57,9 +49,9 @@ namespace VideoCrypt.Image.Main.Repository
             try
             {
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await GetAccessToken());
-                var response = await _httpClient.GetFromJsonAsync<PaginatedList<string>>(new Uri($"{_apiBaseUrl}/api/file/list?page={page}&pageSize={pageSize}"));
+                var response = await _httpClient.GetFromJsonAsync<Models.PaginatedList<string>>(new Uri($"{_apiBaseUrl}/api/file/list?page={page}&pageSize={pageSize}"));
 
-                return response ?? new PaginatedList<string>();
+                return response ?? new Models.PaginatedList<string>();
             }
             catch (Exception ex)
             {
