@@ -1,9 +1,12 @@
+using Dapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using VideoCrypt.Image.Data;
 using VideoCrypt.Image.CashingApp.Repository;
+using VideoCrypt.Image.Data.Models;
 using VideoCrypt.Image.Server.Authorization;
+using VideoCrypt.Image.Server.Dapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +18,7 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy(AccessKeyAuthorization.PolicyName, policy =>
         policy.Requirements.Add(new AccessKeyRequirement("Qqt3KMXNlK4iCKqPhgEd")));
 });
+DapperExtensions.ConfigureTypeMappings();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
