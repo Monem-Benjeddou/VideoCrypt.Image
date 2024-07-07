@@ -25,6 +25,10 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(@"./keys"))
     .SetApplicationName("VideoCryptImage");
+builder.WebHost.UseKestrel(options =>
+{
+    options.ListenAnyIP(8080); 
+});
 builder.Services.AddHttpClient<AuthenticationService>(client =>
 {
     //http://51.38.80.38:7003
