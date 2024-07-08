@@ -21,7 +21,15 @@ builder.Services.AddAuthorization(options =>
 });
 
 DapperExtensions.ConfigureTypeMappings();
-
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(builder =>
+    {
+        builder.WithOrigins("http://51.38.80.38:8080")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IImageRepository, ImageRepository>();
