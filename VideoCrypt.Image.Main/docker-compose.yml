@@ -9,6 +9,9 @@ services:
       - "7001:7003"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - access_key=Qqt3KMXNlK4iCKqPhgEd
+      - secret_key=Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6
+      - service_url=http://10.13.111.3
     network_mode: host
   
   videocrypt-caching-app:
@@ -19,6 +22,10 @@ services:
       - "4000:4000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - access_key=Qqt3KMXNlK4iCKqPhgEd
+      - secret_key=Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6
+      - service_url=http://10.13.111.3
+
     volumes:
       - videocryptimage_cache_volume:/cache
     network_mode: host

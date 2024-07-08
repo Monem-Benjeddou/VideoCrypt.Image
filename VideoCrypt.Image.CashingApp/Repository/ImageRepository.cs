@@ -1,9 +1,14 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Dapper;
+using Microsoft.Extensions.Logging;
 using VideoCrypt.Image.Data;
 using VideoCrypt.Image.Data.Models;
 
@@ -11,20 +16,27 @@ namespace VideoCrypt.Image.CashingApp.Repository
 {
     public class ImageRepository : IImageRepository
     {
-        private const string _serviceUrl = "http://10.13.111.3";
+        private readonly string _serviceUrl;
+        private readonly string _accessKey;
+        private readonly string _secretKey;
         private const string _serverPort = ":9000";
-        private const string _accessKey = "Qqt3KMXNlK4iCKqPhgEd";
-        private const string _secretKey = "Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6";
         private const string _sourceBucket = "imagesbucket";
 
         private readonly ApplicationDbContext _context;
         private readonly AmazonS3Client _s3Client;
         private readonly ILogger<ImageRepository> _logger;
-
+        const string insertSql = @"INSERT INTO image_metadata (file_name, cached_file_path, url, created_at) VALUES (@FileName, @CachedFilePath, @Url, @CreatedAt)";
+        const string selectByNameSql = @"SELECT * FROM image_metadata WHERE file_name = @FileName";
         public ImageRepository(ApplicationDbContext context, ILogger<ImageRepository> logger)
         {
-            _context = context;
-            _logger = logger;
+            _secretKey = Environment.GetEnvironmentVariable("secret_key") ??
+                         throw new Exception("Secret key not found");
+            _accessKey = Environment.GetEnvironmentVariable("access_key") ??
+                         throw new Exception("Access key not found");
+            _serviceUrl = Environment.GetEnvironmentVariable("service_url") ??
+                         throw new Exception("Service url not found");
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             var config = new AmazonS3Config
             {
@@ -42,8 +54,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
 
             using (var connection = _context.CreateConnection())
             {
-                var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(
-                    "SELECT * FROM image_metadata WHERE file_name = @FileName", new { FileName = fileName });
+                var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(selectByNameSql, new { FileName = fileName });
 
                 if (cachedImage != null)
                 {
@@ -57,11 +68,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
                 var fileBytes = await DownloadFileAsync(fileName, _sourceBucket);
                 var cacheDirectory = Path.Combine("/app/cache");
 
-                if (!Directory.Exists(cacheDirectory))
-                {
-                    _logger.LogInformation($"Creating cache directory: {cacheDirectory}");
-                    Directory.CreateDirectory(cacheDirectory);
-                }
+                EnsureCacheDirectoryExists(cacheDirectory);
 
                 var cacheFilePath = Path.Combine(cacheDirectory, fileName);
                 await File.WriteAllBytesAsync(cacheFilePath, fileBytes);
@@ -77,10 +84,10 @@ namespace VideoCrypt.Image.CashingApp.Repository
                     CreatedAt = DateTime.UtcNow
                 };
 
-                using var connection = _context.CreateConnection();
-                var sql = @"INSERT INTO image_metadata (file_name, cached_file_path, url, created_at)
-                                VALUES (@FileName, @CachedFilePath, @Url, @CreatedAt)";
-                await connection.ExecuteAsync(sql, newImageMetadata);
+                using (var dbConnection = _context.CreateConnection())
+                {
+                    await dbConnection.ExecuteAsync(insertSql, newImageMetadata);
+                }
 
                 _logger.LogInformation($"Metadata for {fileName} saved in database with URL: {url}");
 
@@ -145,11 +152,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
                 List<string> fileList;
                 var cacheDirectory = Path.Combine("/app/cache");
 
-                if (!Directory.Exists(cacheDirectory))
-                {
-                    _logger.LogInformation($"Cache directory not found. Creating: {cacheDirectory}");
-                    Directory.CreateDirectory(cacheDirectory);
-                }
+                EnsureCacheDirectoryExists(cacheDirectory);
 
                 var imageMetadataList = new List<ImageMetadata>();
 
@@ -158,14 +161,14 @@ namespace VideoCrypt.Image.CashingApp.Repository
                     var objects = response.S3Objects.OrderBy(x => x.LastModified)
                         .Skip((page - 1) * pageSize)
                         .Take(pageSize)
+                        .Distinct()
                         .ToList();
 
                     foreach (var s3Object in objects)
                     {
                         _logger.LogInformation($"Processing file: {s3Object.Key}");
 
-                        var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(
-                            "SELECT * FROM image_metadata WHERE file_name = @FileName",
+                        var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(selectByNameSql,
                             new { FileName = s3Object.Key });
 
                         if (cachedImage != null)
@@ -198,9 +201,8 @@ namespace VideoCrypt.Image.CashingApp.Repository
                                 CreatedAt = DateTime.UtcNow
                             };
 
-                            var sql =
-                                "INSERT INTO image_metadata (file_name, cached_file_path, url, created_at) VALUES (@FileName, @CachedFilePath, @Url, @CreatedAt)";
-                            await connection.ExecuteAsync(sql, newImageMetadata);
+
+                            await connection.ExecuteAsync(insertSql, newImageMetadata);
 
                             imageMetadataList.Add(newImageMetadata);
                         }
@@ -260,8 +262,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
                 _logger.LogInformation($"Attempting to delete cached file: {fileName}");
 
                 using var connection = _context.CreateConnection();
-                var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(
-                    "SELECT * FROM image_metadata WHERE file_name = @FileName", new { FileName = fileName });
+                var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(selectByNameSql, new { FileName = fileName });
 
                 if (cachedImage != null)
                 {
@@ -290,12 +291,20 @@ namespace VideoCrypt.Image.CashingApp.Repository
                 .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
                 .Select(ip => ip.ToString())
                 .Where(ip => ip.Contains("51"))
-                .ToList()
                 .FirstOrDefault();
 
             var url = $"http://{ip}:4000/cache/{fileName}";
             _logger.LogInformation($"Generated URL for cached file: {url}");
             return url;
+        }
+
+        private void EnsureCacheDirectoryExists(string cacheDirectory)
+        {
+            if (!Directory.Exists(cacheDirectory))
+            {
+                _logger.LogInformation($"Creating cache directory: {cacheDirectory}");
+                Directory.CreateDirectory(cacheDirectory);
+            }
         }
     }
 }

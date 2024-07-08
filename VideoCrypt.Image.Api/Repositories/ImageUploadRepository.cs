@@ -1,3 +1,4 @@
+using System.Globalization;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
@@ -6,21 +7,25 @@ namespace VideoCrypt.Image.Api.Utilities;
 
 public class ImageUploadRepository : IImageUploadRepository
 {
-    private const string ServiceUrl = "http://10.13.111.3";
-    public const string UiPort = ":9001";
-    public const string ServerPort = ":9000";
-    const string AccessKey = "Qqt3KMXNlK4iCKqPhgEd";
-    const string SecretKey = "Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6";
-    public const string SourceBucket = "imagesbucket";
-    private static AmazonS3Client GetS3Client()
+    private string _serviceUrl = Environment.GetEnvironmentVariable("service_url") ??
+                                 throw new Exception("Service url  key not found");
+    public const string UiPort = ":9001"; 
+    const string _serverPort = ":9000";
+    private string _accessKey = Environment.GetEnvironmentVariable("access_key") ?? 
+                                throw new Exception("Access key not found");
+    private string _secretKey = Environment.GetEnvironmentVariable("secret_key") ??
+                                throw new Exception("Secret key not found"); 
+    const string _sourceBucket = "imagesbucket";
+
+    private AmazonS3Client GetS3Client()
     {
         var config = new AmazonS3Config
         {
-            ServiceURL = ServiceUrl + ServerPort,
+            ServiceURL = _serviceUrl + _serverPort,
             ForcePathStyle = true
         };
 
-        var credentials = new BasicAWSCredentials(AccessKey, SecretKey);
+        var credentials = new BasicAWSCredentials(_accessKey, _secretKey);
         return new AmazonS3Client(credentials, config);
     }
     public async Task<bool> UploadFileAsync(string fileName, MemoryStream memoryStream, string contentType)
@@ -32,7 +37,7 @@ public class ImageUploadRepository : IImageUploadRepository
             memoryStream.Seek(0, SeekOrigin.Begin);
             var request = new PutObjectRequest
             {
-                BucketName = SourceBucket,
+                BucketName = _sourceBucket,
                 Key = fileName,
                 InputStream = memoryStream,
                 ContentType = contentType
@@ -58,7 +63,7 @@ public class ImageUploadRepository : IImageUploadRepository
             var client = GetS3Client();
             var request = new GetObjectMetadataRequest
             {
-                BucketName = SourceBucket,
+                BucketName = _sourceBucket,
                 Key = key
             };
 

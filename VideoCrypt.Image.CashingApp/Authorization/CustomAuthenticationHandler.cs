@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
@@ -17,7 +18,8 @@ namespace VideoCrypt.Image.Server.Authorization
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
             var headers = Request.Headers;
-            if (!headers.ContainsKey("AccessKey") || headers["AccessKey"] != "Qqt3KMXNlK4iCKqPhgEd")
+            var accessKey = Environment.GetEnvironmentVariable("access_key")?? throw new Exception("Access key not found");
+            if (!headers.ContainsKey("AccessKey") || headers["AccessKey"] != accessKey)
             {
                 return Task.FromResult(AuthenticateResult.Fail("Invalid Access Key"));
             }

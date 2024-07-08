@@ -5,7 +5,7 @@
         @if (Model.Images.Value != null && Model.Images is not null)
         {
         var images = await Model.Images.Value;
-        foreach (var imageUrl in images)
+        foreach (var imageUrl in images.Items)
         {
         <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
             <div class="card">
@@ -31,20 +31,22 @@
             <ul class="pagination">
                 @for (int i = 1; i <= Model.TotalPages; i++)
                 {
-                <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
-                    <a class="page-link" href="@Url.Page("/ImageGallery", new { currentPage = i })">@i</a>
-                </li>
+                    <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
+                        <a class="page-link" href="@Url.Page("/ImageGallery", new { currentPage = i })">@i</a>
+                    </li>
                 }
             </ul>
         </nav>
     </div>
 
-    <!-- Modal -->
+
     <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-body">
                     <img id="modalImage" src="" class="img-fluid">
+                    <p id="imageResolution"></p>
+                    <p id="imageExtension"></p>
                 </div>
                 <div class="modal-footer">
                     <a id="downloadLink" href="" class="btn btn-primary" download>Download</a>
@@ -53,6 +55,8 @@
             </div>
         </div>
     </div>
+    
+    
     <div class="modal fade" id="deleteSuccessModal" tabindex="-1" aria-labelledby="deleteSuccessModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
