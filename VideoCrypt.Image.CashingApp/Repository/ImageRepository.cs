@@ -126,7 +126,6 @@ namespace VideoCrypt.Image.CashingApp.Repository
             {
                 _logger.LogInformation($"Listing images, Page: {page}, PageSize: {pageSize}");
 
-
                 var request = new ListObjectsV2Request
                 {
                     BucketName = _sourceBucket
@@ -134,42 +133,60 @@ namespace VideoCrypt.Image.CashingApp.Repository
 
                 var response = await _s3Client.ListObjectsV2Async(request);
 
-                if (response.HttpStatusCode != System.Net.HttpStatusCode.OK)
+                if (response.HttpStatusCode != HttpStatusCode.OK)
                 {
                     _logger.LogError($"Error listing files: {response.HttpStatusCode}");
                     throw new Exception($"Error listing files: {response.HttpStatusCode}");
                 }
+
+                var totalCount = response.S3Objects.Count;
+                _logger.LogInformation($"Total files in bucket: {totalCount}");
+
                 List<string> fileList;
                 var cacheDirectory = Path.Combine("/app/cache");
 
                 if (!Directory.Exists(cacheDirectory))
                 {
+                    _logger.LogInformation($"Cache directory not found. Creating: {cacheDirectory}");
                     Directory.CreateDirectory(cacheDirectory);
                 }
 
                 var imageMetadataList = new List<ImageMetadata>();
-                var totalCount = response.S3Objects.Count;
+
                 using (var connection = _context.CreateConnection())
                 {
                     var objects = response.S3Objects.OrderBy(x => x.LastModified)
                         .Skip((page - 1) * pageSize)
-                        .Take(pageSize).ToList();
+                        .Take(pageSize)
+                        .ToList();
+
                     foreach (var s3Object in objects)
                     {
+                        _logger.LogInformation($"Processing file: {s3Object.Key}");
+
                         var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(
                             "SELECT * FROM image_metadata WHERE file_name = @FileName",
                             new { FileName = s3Object.Key });
 
                         if (cachedImage != null)
                         {
+                            _logger.LogInformation($"Found cached metadata for file: {s3Object.Key}");
                             imageMetadataList.Add(cachedImage);
                         }
                         else
                         {
-                            var fileBytes = await DownloadFileAsync(s3Object.Key, _sourceBucket);
                             var cacheFilePath = Path.Combine(cacheDirectory, s3Object.Key);
 
-                            await File.WriteAllBytesAsync(cacheFilePath, fileBytes);
+                            if (!File.Exists(cacheFilePath))
+                            {
+                                _logger.LogInformation($"Downloading and caching file: {s3Object.Key}");
+                                var fileBytes = await DownloadFileAsync(s3Object.Key, _sourceBucket);
+                                await File.WriteAllBytesAsync(cacheFilePath, fileBytes);
+                            }
+                            else
+                            {
+                                _logger.LogInformation($"File already cached: {s3Object.Key}");
+                            }
 
                             var url = GenerateCachedFileUrl(s3Object.Key);
 
@@ -194,6 +211,8 @@ namespace VideoCrypt.Image.CashingApp.Repository
                 fileList = orderedImageMetadataList.Select(im => im.Url).ToList();
 
                 int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+                _logger.LogInformation($"Returning {fileList.Count} files. Page {page} of {totalPages}.");
 
                 return new PaginatedList<string>
                 {
@@ -267,13 +286,13 @@ namespace VideoCrypt.Image.CashingApp.Repository
         private string GenerateCachedFileUrl(string fileName)
         {
             var host = Dns.GetHostEntry(Dns.GetHostName());
-            var ip =  host.AddressList
+            var ip = host.AddressList
                 .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
                 .Select(ip => ip.ToString())
                 .Where(ip => ip.Contains("51"))
                 .ToList()
                 .FirstOrDefault();
-            
+
             var url = $"http://{ip}:4000/cache/{fileName}";
             _logger.LogInformation($"Generated URL for cached file: {url}");
             return url;
