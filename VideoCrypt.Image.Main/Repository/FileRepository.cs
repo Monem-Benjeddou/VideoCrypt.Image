@@ -39,7 +39,7 @@ namespace VideoCrypt.Image.Main.Repository
         {
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await GetAccessToken());
 
-            string uriFileName = Uri.EscapeUriString(fileName);
+            var uriFileName = Uri.EscapeUriString(fileName);
             
             var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/api/File/{uriFileName}");
             response.EnsureSuccessStatusCode();

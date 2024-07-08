@@ -1,55 +1,45 @@
 document.addEventListener('DOMContentLoaded', function() {
-    var imageModal = document.getElementById('imageModal');
+    let imageModal = document.getElementById('imageModal');
     if (!imageModal) {
         console.error("Element with ID 'imageModal' not found.");
         return;
     }
 
-    imageModal.addEventListener('show.bs.modal', function (event) {
-        var button = event.relatedTarget;
-        var imageSrc = button.getAttribute('data-bs-src');
-        var resolution = button.getAttribute('data-bs-resolution');
-        var extension = button.getAttribute('data-bs-extension');
+    imageModal.addEventListener('show.bs.modal', function(event) {
+        let button = event.relatedTarget;
+        let imageSrc = button.getAttribute('data-bs-src');
 
-        var modalImage = imageModal.querySelector('#modalImage');
+        let modalImage = imageModal.querySelector('#modalImage');
         modalImage.src = imageSrc;
 
-        var imageResolution = imageModal.querySelector('#imageResolution');
-        imageResolution.textContent = 'Resolution: ' + resolution;
+        let imageResolution = imageModal.querySelector('#imageResolution');
+        let resolution = extractResolutionFromUrl(imageSrc);
+        imageResolution.textContent = 'Resolution: ' + (resolution || 'Unknown');
 
-        var imageExtension = imageModal.querySelector('#imageExtension');
-        imageExtension.textContent = 'Extension: ' + extension;
+        let imageExtension = imageModal.querySelector('#imageExtension');
+        let extension = extractExtensionFromUrl(imageSrc);
+        imageExtension.textContent = 'Extension: ' + (extension || 'Unknown');
 
-        var downloadLink = imageModal.querySelector('#downloadLink');
-        downloadLink.href = imageSrc; // Set the href attribute to the image source
+        let downloadLink = imageModal.querySelector('#downloadLink');
+        downloadLink.href = imageSrc;
 
-        // Attach click event listener to handle download
+        downloadLink.removeEventListener('click', downloadImage);
         downloadLink.addEventListener('click', function(event) {
-            event.preventDefault(); // Prevent the default action (navigating to the image URL)
-            downloadImage(imageSrc); // Call the downloadImage function with the image URL
+            event.preventDefault();
+            downloadImage(imageSrc);
         });
     });
 
-    // Function to handle image download
-    function downloadImage(imageUrl) {
-        fetch(imageUrl)
-            .then(response => response.blob())
-            .then(blob => {
-                var url = window.URL.createObjectURL(blob);
-                var a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                a.download = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-            })
-            .catch(() => alert('Failed to download image.'));
+    function extractResolutionFromUrl(url) {
+        // Example: http://example.com/image_1920x1080.jpg
+        let regex = /_(\d+x\d+)\./;
+        let match = url.match(regex);
+        return match ? match[1] : null;
     }
 
-    // Function to handle image deletion
-
-});
+    function extractExtensionFromUrl(url) {
+        return url.split('.').pop().split('?')[0];
+    }});
 function deleteImage(imageUrl) {
     if (confirm('Are you sure you want to delete this image?')) {
         $.ajax({
