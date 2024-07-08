@@ -1,39 +1,53 @@
-var imageModal = document.getElementById('imageModal');
-imageModal.addEventListener('show.bs.modal', function (event) {
-    var button = event.relatedTarget;
-    var imageSrc = button.getAttribute('data-bs-src');
-    var resolution = button.getAttribute('data-bs-resolution');
-    var extension = button.getAttribute('data-bs-extension');
+document.addEventListener('DOMContentLoaded', function() {
+    var imageModal = document.getElementById('imageModal');
+    if (!imageModal) {
+        console.error("Element with ID 'imageModal' not found.");
+        return;
+    }
 
-    var modalImage = imageModal.querySelector('#modalImage');
-    modalImage.src = imageSrc;
+    imageModal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        var imageSrc = button.getAttribute('data-bs-src');
+        var resolution = button.getAttribute('data-bs-resolution');
+        var extension = button.getAttribute('data-bs-extension');
 
-    var imageResolution = imageModal.querySelector('#imageResolution');
-    imageResolution.textContent = 'Resolution: ' + resolution;
+        var modalImage = imageModal.querySelector('#modalImage');
+        modalImage.src = imageSrc;
 
-    var imageExtension = imageModal.querySelector('#imageExtension');
-    imageExtension.textContent = 'Extension: ' + extension;
+        var imageResolution = imageModal.querySelector('#imageResolution');
+        imageResolution.textContent = 'Resolution: ' + resolution;
 
-    var downloadButton = imageModal.querySelector('#downloadButton');
-    downloadButton.onclick = function() { downloadImage(imageSrc); };
+        var imageExtension = imageModal.querySelector('#imageExtension');
+        imageExtension.textContent = 'Extension: ' + extension;
+
+        var downloadLink = imageModal.querySelector('#downloadLink');
+        downloadLink.href = imageSrc; // Set the href attribute to the image source
+    });
+
+    // Function to handle image download
+    function downloadImage(imageUrl) {
+        fetch(imageUrl)
+            .then(response => response.blob())
+            .then(blob => {
+                var url = window.URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            })
+            .catch(() => alert('Failed to download image.'));
+    }
+
+    // Attach downloadImage function to the click event of downloadLink
+    var downloadLink = imageModal.querySelector('#downloadLink');
+    downloadLink.addEventListener('click', function(event) {
+        event.preventDefault(); // Prevent the link from navigating to the image URL
+        downloadImage(downloadLink.href);
+    });
 });
-
-
-function downloadImage(imageUrl) {
-    fetch(imageUrl)
-        .then(response => response.blob())
-        .then(blob => {
-            var url = window.URL.createObjectURL(blob);
-            var a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-        })
-        .catch(() => alert('Failed to download image.'));
-}
 
 function deleteImage(imageUrl) {
     if (confirm('Are you sure you want to delete this image?')) {

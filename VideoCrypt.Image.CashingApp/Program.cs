@@ -13,12 +13,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddAuthentication("DefaultScheme")
     .AddScheme<AuthenticationSchemeOptions, CustomAuthenticationHandler>("DefaultScheme", null);
-var accessKey = Environment.GetEnvironmentVariable("access_key")??throw new Exception("Access key not found");
+var accessKey = Environment.GetEnvironmentVariable("access_key") ?? throw new Exception("Access key not found");
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy(AccessKeyAuthorization.PolicyName, policy =>
         policy.Requirements.Add(new AccessKeyRequirement(accessKey)));
 });
+
 DapperExtensions.ConfigureTypeMappings();
 
 builder.Services.AddEndpointsApiExplorer();
