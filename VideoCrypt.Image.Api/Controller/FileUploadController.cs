@@ -91,7 +91,7 @@ namespace VideoCrypt.Image.Api.Controller
                     "SELECT * FROM image_metadata WHERE file_name = @FileName", new { FileName = fileName });
 
                 if (cachedImage != null)
-                    return Ok(new { Url = cachedImage.Url });
+                    return Ok(cachedImage.Url);
 
                 using var client = CreateAuthorizedClient();
                 var response = await client.GetAsync($"{_baseUrl}/api/image/{fileName}");
@@ -99,7 +99,7 @@ namespace VideoCrypt.Image.Api.Controller
                 if (response.IsSuccessStatusCode)
                 {
                     var imageUrl = await response.Content.ReadAsStringAsync();
-                    return Ok(new { Url = imageUrl });
+                    return Ok(imageUrl);
                 }
 
                 return response.StatusCode switch

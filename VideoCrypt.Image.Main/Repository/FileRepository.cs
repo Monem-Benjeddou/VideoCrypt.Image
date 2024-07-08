@@ -51,7 +51,9 @@ namespace VideoCrypt.Image.Main.Repository
             try
             {
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await GetAccessToken());
-                var response = await _httpClient.GetFromJsonAsync<string>(new Uri($"{_apiBaseUrl}/api/file/image?fileName={fileName}"));
+                var uriFileName = Uri.EscapeUriString(fileName);
+
+                var response = await _httpClient.GetFromJsonAsync<string>(new Uri($"{_apiBaseUrl}/api/file/image/{uriFileName}"));
                 return response;
             }
             catch (Exception ex)

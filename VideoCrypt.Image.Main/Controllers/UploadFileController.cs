@@ -22,7 +22,7 @@ namespace VideoCrypt.Image.Main.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-        [HttpGet("GenerateShareLink")]
+        [HttpGet("GenerateShareLink/{fileName}")]
         public async Task<IActionResult> GenerateShareLink(string fileName)
         {
             try
