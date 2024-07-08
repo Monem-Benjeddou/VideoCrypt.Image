@@ -9,5 +9,7 @@ namespace VideoCrypt.Image.Main.Repository
         Task<byte[]> GetImageAsync(string fileName);
         Task<PaginatedList<string>> ListFilesAsync(int page = 1, int pageSize = 10);
         Task DeleteFileAsync(string fileName);
+        Task<string> GenerateFileLink(string fileName);
+
     }
 }

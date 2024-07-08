@@ -94,7 +94,7 @@ namespace VideoCrypt.Image.Api.Controller
                     return Ok(new { Url = cachedImage.Url });
 
                 using var client = CreateAuthorizedClient();
-                var response = await client.GetAsync($"{_baseUrl}/api/file/image/{fileName}");
+                var response = await client.GetAsync($"{_baseUrl}/api/image/{fileName}");
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -168,5 +168,6 @@ namespace VideoCrypt.Image.Api.Controller
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
     }
 }

@@ -45,6 +45,22 @@ namespace VideoCrypt.Image.Main.Repository
             response.EnsureSuccessStatusCode();
         }
 
+        public async Task<string> GenerateFileLink(string fileName)
+        {
+
+            try
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await GetAccessToken());
+                var response = await _httpClient.GetFromJsonAsync<string>(new Uri($"{_apiBaseUrl}/api/file/image?fileName={fileName}"));
+                return response;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return "";
+            }
+        }
+
         public async Task<PaginatedList<string>> ListFilesAsync(int page = 1, int pageSize = 10)
         {
             try
