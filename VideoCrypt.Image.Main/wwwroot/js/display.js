@@ -13,8 +13,12 @@ document.addEventListener('DOMContentLoaded', function() {
         modalImage.src = imageSrc;
 
         let imageResolution = imageModal.querySelector('#imageResolution');
-        let resolution = extractResolutionFromUrl(imageSrc);
-        imageResolution.textContent = 'Resolution: ' + (resolution || 'Unknown');
+        getMeta(imageSrc).then(img => {
+            let resolution = `${img.naturalWidth}x${img.naturalHeight}`;
+            imageResolution.textContent = 'Resolution: ' + (resolution || 'Unknown');
+        }).catch(err => {
+            imageResolution.textContent = 'Resolution: Unknown';
+        });
 
         let imageExtension = imageModal.querySelector('#imageExtension');
         let extension = extractExtensionFromUrl(imageSrc);
@@ -30,6 +34,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    function downloadImage(imageUrl) {
+        fetch(imageUrl)
+            .then(response => response.blob())
+            .then(blob => {
+                var url = window.URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            })
+            .catch(() => alert('Failed to download image.'));
+    }
+
     function extractResolutionFromUrl(url) {
         // Example: http://example.com/image_1920x1080.jpg
         let regex = /_(\d+x\d+)\./;
@@ -39,8 +59,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function extractExtensionFromUrl(url) {
         return url.split('.').pop().split('?')[0];
-    }});
-function deleteImage(imageUrl) {
+    }
+
+    const getMeta = (url) =>
+        new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = (err) => reject(err);
+            img.src = url;
+        });
+
+
+});
+function  deleteImage (imageUrl) {
     if (confirm('Are you sure you want to delete this image?')) {
         $.ajax({
             url: '/Image/deleteImage',
@@ -63,6 +94,3 @@ function deleteImage(imageUrl) {
         });
     }
 }
-
-
-
