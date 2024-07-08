@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
+    // Show modal event listener
     imageModal.addEventListener('show.bs.modal', function (event) {
         var button = event.relatedTarget;
         var imageSrc = button.getAttribute('data-bs-src');
@@ -22,12 +23,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
         var downloadLink = imageModal.querySelector('#downloadLink');
         downloadLink.href = imageSrc; // Set the href attribute to the image source
+
+        var deleteButton = imageModal.querySelector('#deleteButton');
+        deleteButton.addEventListener('click', function() {
+            deleteImage(imageSrc);
+        });
     });
 
     // Function to handle image download
     function downloadImage(imageUrl) {
         fetch(imageUrl)
-            .then(response => response.blob())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to download image.');
+                }
+                return response.blob();
+            })
             .then(blob => {
                 var url = window.URL.createObjectURL(blob);
                 var a = document.createElement('a');
@@ -38,39 +49,34 @@ document.addEventListener('DOMContentLoaded', function() {
                 a.click();
                 window.URL.revokeObjectURL(url);
             })
-            .catch(() => alert('Failed to download image.'));
+            .catch(error => {
+                console.error('Error downloading image:', error);
+                alert('Failed to download image.');
+            });
     }
 
-    // Attach downloadImage function to the click event of downloadLink
-    var downloadLink = imageModal.querySelector('#downloadLink');
-    downloadLink.addEventListener('click', function(event) {
-        event.preventDefault(); // Prevent the link from navigating to the image URL
-        downloadImage(downloadLink.href);
-    });
-});
-
-function deleteImage(imageUrl) {
-    if (confirm('Are you sure you want to delete this image?')) {
-        $.ajax({
-            url: '/Image/deleteImage',
-            type: 'POST',
-            data: {imageUrl: imageUrl},
-            success: function (result) {
-                if (result.success) {
-                    $('#deleteSuccessModal').modal('show');
-                    setTimeout(function () {
-                        location.reload();
-                    }, 2000);
-                } else {
-                    alert('Failed to delete image: ' + result.message);
+    // Function to handle image deletion
+    function deleteImage(imageUrl) {
+        if (confirm('Are you sure you want to delete this image?')) {
+            $.ajax({
+                url: '/Image/deleteImage',
+                type: 'POST',
+                data: {imageUrl: imageUrl},
+                success: function (result) {
+                    if (result.success) {
+                        $('#deleteSuccessModal').modal('show');
+                        setTimeout(function () {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        alert('Failed to delete image: ' + result.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error: " + status + " " + error);
+                    alert('Failed to delete image due to server error.');
                 }
-            },
-            error: function (xhr, status, error) {
-                console.error("Error: " + status + " " + error);
-                alert('Failed to delete image due to server error.');
-            }
-        });
+            });
+        }
     }
-}
-
-
+});
