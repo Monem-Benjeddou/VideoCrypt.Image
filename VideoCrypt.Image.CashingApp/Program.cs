@@ -11,13 +11,14 @@ using VideoCrypt.Image.Server.Dapper;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(builder =>
+    options.AddDefaultPolicy(policyBuilder =>
     {
-        builder.WithOrigins("http://51.38.80.38:8080")
+        policyBuilder.WithOrigins("http://51.38.80.38:8080")
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
 });
+
 builder.Services.AddControllers();
 builder.Services.AddAuthentication("DefaultScheme")
     .AddScheme<AuthenticationSchemeOptions, CustomAuthenticationHandler>("DefaultScheme", null);
@@ -49,6 +50,7 @@ if (!Directory.Exists(cachePath))
 {
     Directory.CreateDirectory(cachePath);
 }
+app.UseCors(); 
 
 app.UseStaticFiles(new StaticFileOptions
 {
@@ -57,7 +59,6 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 app.UseHttpsRedirection();
-app.UseCors(); 
 
 app.UseAuthentication();
 app.UseAuthorization();

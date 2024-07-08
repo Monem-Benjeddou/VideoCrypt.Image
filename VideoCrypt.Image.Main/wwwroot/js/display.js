@@ -32,7 +32,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Function to handle image download
     function downloadImage(imageUrl) {
-        fetch(imageUrl)
+        var proxyUrl = 'http://51.38.80.38:8080/proxy?url=' + encodeURIComponent(imageUrl);
+        fetch(proxyUrl)
             .then(response => response.blob())
             .then(blob => {
                 var url = window.URL.createObjectURL(blob);
