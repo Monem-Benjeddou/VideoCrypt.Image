@@ -23,11 +23,11 @@ namespace VideoCrypt.Image.Main.Controllers
             {
                 var fileName = imageUrl.Split('/').Last();
                 await _fileRepository.DeleteFileAsync(fileName);
-                return RedirectToAction("Index", "Gallery"); 
+                return Json(new { success = true });
             }
             catch (Exception ex)
             {
-                return RedirectToAction("Error", new { message = ex.Message });
+                return Json(new { success = false, message = ex.Message });
             }
         }
     }

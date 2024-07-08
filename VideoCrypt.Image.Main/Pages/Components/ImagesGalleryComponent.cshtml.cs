@@ -23,4 +23,9 @@ public class ImagesGalleryComponent(IFileRepository fileRepository) : HydroCompo
         
         return images != null && images.Items.Any() ? images : new PaginatedList<string>();
     });
+
+    public void ClearCache()
+    {
+        _cachedImages = null;
+    }
 }

@@ -1,27 +1,37 @@
-@model VideoCrypt.Image.Main.Pages.Components.ImagesGalleryComponent
+@model ImagesGalleryComponent
 <div class="container mt-5">
     <h2 class="text-center mb-4">Image Gallery</h2>
     <div class="row">
-        @if (Model.Images.Value != null && Model.Images is not null)
+        @if (Model.Images.Value != null || Model.Images is not null )
         {
-        var images = await Model.Images.Value;
-        foreach (var imageUrl in images.Items)
-        {
-        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-            <div class="card">
-                <img src="@imageUrl" class="card-img-top gallery-image" data-bs-toggle="modal" data-bs-target="#imageModal" data-bs-src="@imageUrl">
-                <div class="card-body text-center">
-                    <button class="btn btn-danger" onclick="deleteImage('@imageUrl')">Delete</button>
+            var images = await Model.Images.Value;
+            if (images.Items is not null)
+            {
+                foreach (var imageUrl in images.Items)
+                {
+                    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                        <div class="card">
+                            <img src="@imageUrl" class="card-img-top gallery-image" data-bs-toggle="modal" data-bs-target="#imageModal" data-bs-src="@imageUrl">
+                            <div class="card-body text-center">
+                                <button class="btn btn-danger" onclick="deleteImage('@imageUrl')">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12">
+                    <p class="text-center">No images found.</p>
                 </div>
-            </div>
-        </div>
-        }
+            }
+
         }
         else
         {
-        <div class="col-12">
-            <p class="text-center">No images found.</p>
-        </div>
+            <div class="col-12">
+                <p class="text-center">No images found.</p>
+            </div>
         }
     </div>
 
@@ -57,8 +67,6 @@
     </div>
 
 
-
-
     <div class="modal fade" id="deleteSuccessModal" tabindex="-1" aria-labelledby="deleteSuccessModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -73,4 +81,3 @@
         </div>
     </div>
 </div>
-
