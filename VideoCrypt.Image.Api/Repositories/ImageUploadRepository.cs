@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Net;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
@@ -16,6 +17,9 @@ public class ImageUploadRepository : IImageUploadRepository
     private string _secretKey = Environment.GetEnvironmentVariable("secret_key") ??
                                 throw new Exception("Secret key not found"); 
     const string _sourceBucket = "imagesbucket";
+    private readonly string[] _permittedExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".svg"];
+    private readonly string[] _permittedMimeTypes = ["image/jpeg", "image/png", "image/gif", "image/bmp", "image/tiff", "image/svg+xml"
+    ];
 
     private AmazonS3Client GetS3Client()
     {
@@ -28,13 +32,22 @@ public class ImageUploadRepository : IImageUploadRepository
         var credentials = new BasicAWSCredentials(_accessKey, _secretKey);
         return new AmazonS3Client(credentials, config);
     }
-    public async Task<bool> UploadFileAsync(string fileName, MemoryStream memoryStream, string contentType)
+    public async Task<bool> UploadFileAsync(IFormFile formFile)
     {
+        if (formFile == null)
+            throw new ArgumentException("formFile cannot be null", nameof(formFile));
+
         try
         {
+            var fileName = formFile.FileName;
+            var contentType = formFile.ContentType;
+
+            using var memoryStream = new MemoryStream();
+            await formFile.CopyToAsync(memoryStream);
+            memoryStream.Seek(0, SeekOrigin.Begin);
+
             var client = GetS3Client();
 
-            memoryStream.Seek(0, SeekOrigin.Begin);
             var request = new PutObjectRequest
             {
                 BucketName = _sourceBucket,
@@ -44,17 +57,19 @@ public class ImageUploadRepository : IImageUploadRepository
             };
 
             var response = await client.PutObjectAsync(request);
-            if (response.HttpStatusCode != System.Net.HttpStatusCode.OK)
+
+            if (response.HttpStatusCode != HttpStatusCode.OK)
             {
                 throw new Exception($"Error uploading file: {response.HttpStatusCode}");
             }
+
             return true;
         }
         catch (Exception e)
         {
             Console.WriteLine($"Error encountered: '{e.Message}' when uploading an object");
             throw;
-        }    
+        }
     }
     public async Task<bool> FileExistsAsync(string key)
     {

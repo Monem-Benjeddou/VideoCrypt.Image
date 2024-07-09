@@ -12,7 +12,7 @@ namespace VideoCrypt.Image.Api.Controller
     [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    public class FileController(
+    public class ImageController(
         IHttpClientFactory httpClientFactory,
         ApplicationDbContext context,
         IImageUploadRepository imageUploadRepository)
@@ -25,10 +25,7 @@ namespace VideoCrypt.Image.Api.Controller
 
         //private string _baseUrl = "http://localhost:4000";
 
-        private HttpClient CreateAuthorizedClient()
-        {
-            return _httpClientFactory.CreateClient("AuthorizedClient");
-        }
+        private HttpClient CreateAuthorizedClient() => _httpClientFactory.CreateClient("AuthorizedClient");
 
         [HttpPost("upload")]
         public async Task<IActionResult> Upload([FromForm] IFormFile file)
@@ -37,6 +34,7 @@ namespace VideoCrypt.Image.Api.Controller
             {
                 if (file == null)
                     return BadRequest("File is null.");
+                await imageUploadRepository.UploadFileAsync(file);
 
                 var fileName = Path.GetFileName(file.FileName);
                 if (await imageUploadRepository.FileExistsAsync(fileName))
@@ -49,7 +47,6 @@ namespace VideoCrypt.Image.Api.Controller
                     await file.CopyToAsync(memoryStream);
                     memoryStream.Seek(0, SeekOrigin.Begin);
 
-                    await imageUploadRepository.UploadFileAsync(fileName, memoryStream, file.ContentType);
                 }
 
                 return Ok("File uploaded successfully.");

@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using VideoCrypt.Image.Main.Models;
@@ -18,7 +19,7 @@ namespace VideoCrypt.Image.Main.Repository
             _httpClient.BaseAddress = new Uri(_apiBaseUrl);
         }
 
-        public async Task UploadFileAsync(IFormFile file)
+        public async Task UploadFileAsync(IFormFile? file)
         {
             using var content = new MultipartFormDataContent();
             using var ms = new MemoryStream();
@@ -32,7 +33,11 @@ namespace VideoCrypt.Image.Main.Repository
 
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await GetAccessToken());
 
-            var response = await _httpClient.PostAsync($"{_apiBaseUrl}/api/File/upload", content);
+            var response = await _httpClient.PostAsync($"{_apiBaseUrl}/api/Image/upload", content);
+            if (response.StatusCode == HttpStatusCode.Conflict)
+            {
+                throw new Exception("File already exists");
+            }
             response.EnsureSuccessStatusCode();
         }
         public async Task DeleteFileAsync(string fileName)
@@ -41,7 +46,7 @@ namespace VideoCrypt.Image.Main.Repository
 
             var uriFileName = Uri.EscapeUriString(fileName);
             
-            var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/api/File/{uriFileName}");
+            var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/api/Image/{uriFileName}");
             response.EnsureSuccessStatusCode();
         }
 
@@ -52,7 +57,7 @@ namespace VideoCrypt.Image.Main.Repository
             {
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await GetAccessToken());
                 var uriFileName = Uri.EscapeUriString(fileName);
-                var response = await _httpClient.GetAsync(new Uri($"{_apiBaseUrl}/api/file/image/{uriFileName}"));
+                var response = await _httpClient.GetAsync(new Uri($"{_apiBaseUrl}/api/Image/image/{uriFileName}"));
                 if (response.IsSuccessStatusCode)
                 {
                     var imageUrl = await response.Content.ReadAsStringAsync();
@@ -72,7 +77,7 @@ namespace VideoCrypt.Image.Main.Repository
             try
             {
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await GetAccessToken());
-                var response = await _httpClient.GetAsync(new Uri($"{_apiBaseUrl}/api/file/list?page={page}&pageSize={pageSize}"));
+                var response = await _httpClient.GetAsync(new Uri($"{_apiBaseUrl}/api/Image/list?page={page}&pageSize={pageSize}"));
                 var options = new JsonSerializerOptions
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
@@ -92,7 +97,7 @@ namespace VideoCrypt.Image.Main.Repository
         {
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await GetAccessToken());
 
-            var response = await _httpClient.GetAsync($"{_apiBaseUrl}/api/File/image/{fileName}");
+            var response = await _httpClient.GetAsync($"{_apiBaseUrl}/api/Image/image/{fileName}");
             response.EnsureSuccessStatusCode();
 
             var image = await response.Content.ReadAsByteArrayAsync();

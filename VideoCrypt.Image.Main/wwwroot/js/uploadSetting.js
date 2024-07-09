@@ -65,7 +65,7 @@ function showGenerateLinkButton() {
     generateLinkButton.innerText = 'Generate Share Link';
     generateLinkButton.addEventListener('click', function () {
         var fileName = fileNameElement.innerText;
-        fetch(`/UploadFile/GenerateShareLink/${encodeURIComponent(fileName)}`)
+        fetch(`/Image/GenerateShareLink/${encodeURIComponent(fileName)}`)
             .then(response => response.json())
             .then(data => {
                 var shareLinkDiv = document.getElementById('shareLink');

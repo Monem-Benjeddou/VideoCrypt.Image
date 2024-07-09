@@ -1,24 +1,23 @@
-using System.Net.Http.Headers;
 using System.Text;
 using Hydro.Configuration;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using VideoCrypt.Image.Main.Authentication;
 using VideoCrypt.Image.Main.Middlewares;
 using VideoCrypt.Image.Main.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
-// builder.WebHost.UseKestrel(options =>
-// {
-//     options.ListenAnyIP(8080); 
-// });
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(8080); 
+    options.ListenAnyIP(8443, listenOptions =>
+    {
+        listenOptions.UseHttps("aspnetapp.pfx" );
+    });
+});
+
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var secret = Encoding.ASCII.GetBytes(jwtSettings["Secret"]);
 builder.Services.AddControllers();
@@ -30,7 +29,6 @@ builder.Services.AddDataProtection()
 
 builder.Services.AddHttpClient<AuthenticationService>(client =>
 {
-    //http://51.38.80.38:7003
     client.BaseAddress = new Uri("http://51.38.80.38:7003");
 }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
 {
@@ -38,7 +36,6 @@ builder.Services.AddHttpClient<AuthenticationService>(client =>
 });
 
 builder.Services.AddRazorPages();
-
 builder.Services.AddScoped<CustomCookieAuthenticationEvents>();
 builder.Services.AddScoped<IFileRepository, FileRepository>();
 
@@ -86,10 +83,12 @@ else
     app.UseHsts();
 }
 
+// Redirect HTTP to HTTPS
 app.UseHttpsRedirection();
-app.UseStaticFiles();
 
+app.UseStaticFiles();
 app.UseRouting();
+
 var cookiePolicyOptions = new CookiePolicyOptions
 {
     MinimumSameSitePolicy = SameSiteMode.Strict,
