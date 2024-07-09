@@ -24,7 +24,7 @@ namespace VideoCrypt.Image.CashingApp.Controllers
             try
             {
                 var url = await _imageRepository.GetSharedFileUrlAsync(fileName);
-                return Ok(new { Url = url });
+                return Ok(url);
             }
             catch (Exception ex)
             {
