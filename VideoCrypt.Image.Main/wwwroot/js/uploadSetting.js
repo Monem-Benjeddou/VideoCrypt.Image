@@ -2,6 +2,7 @@ Dropzone.options.myGreatDropzone = {
     addRemoveLinks: true,
     paramName: "file",
     maxFiles: 1,
+    acceptedFiles: "image/jpeg,image/png,image/gif,image/bmp,image/tiff,image/svg+xml", 
     init: function () {
         var myDropzone = this;
         $.getJSON('./?handler=ListFolderContents').done(function (data) {
