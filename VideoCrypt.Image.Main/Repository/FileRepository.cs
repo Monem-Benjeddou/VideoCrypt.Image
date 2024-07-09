@@ -52,9 +52,13 @@ namespace VideoCrypt.Image.Main.Repository
             {
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await GetAccessToken());
                 var uriFileName = Uri.EscapeUriString(fileName);
-
-                var response = await _httpClient.GetFromJsonAsync<string>(new Uri($"{_apiBaseUrl}/api/file/image/{uriFileName}"));
-                return response;
+                var response = await _httpClient.GetAsync(new Uri($"{_apiBaseUrl}/api/file/image/{uriFileName}"));
+                if (response.IsSuccessStatusCode)
+                {
+                    var imageUrl = await response.Content.ReadAsStringAsync();
+                    return imageUrl;
+                }
+                return "";
             }
             catch (Exception ex)
             {

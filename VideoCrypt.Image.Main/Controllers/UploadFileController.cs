@@ -29,12 +29,14 @@ namespace VideoCrypt.Image.Main.Controllers
             {
                 var fileUrl = await fileRepository.GenerateFileLink(fileName);
                 if (string.IsNullOrEmpty(fileUrl)) return NotFound("File share link is not found");
-                return Ok(fileUrl);
+
+                return Ok(new { url = fileUrl });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
     }
 }
