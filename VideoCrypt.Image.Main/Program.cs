@@ -12,10 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(8080); 
-    options.ListenAnyIP(8443, listenOptions =>
-    {
-        listenOptions.UseHttps("aspnetapp.pfx" );
-    });
+
 });
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
