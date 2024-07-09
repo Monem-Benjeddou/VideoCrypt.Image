@@ -1,8 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using VideoCrypt.Image.Main.Repository;
 
 namespace VideoCrypt.Image.Main.Controllers
@@ -37,7 +34,6 @@ namespace VideoCrypt.Image.Main.Controllers
                 {
                     return BadRequest("Invalid file extension.");
                 }
-
                 await fileRepository.UploadFileAsync(file);
                 return Ok("Image Uploaded");
             }
