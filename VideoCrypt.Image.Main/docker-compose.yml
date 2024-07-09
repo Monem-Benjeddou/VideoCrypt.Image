@@ -36,6 +36,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8001:8080"
+      - "8443:8443" 
+
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     network_mode: host
