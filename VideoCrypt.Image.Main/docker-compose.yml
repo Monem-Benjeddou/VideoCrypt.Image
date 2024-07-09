@@ -11,7 +11,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production  # Change to Production for TLS setup
       - access_key=Qqt3KMXNlK4iCKqPhgEd
       - secret_key=Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6
-      - service_url=https://image.john-group.org
+      - service_url=http://10.13.111.3
     volumes:
       - dataprotection:/keys
     network_mode: host
@@ -26,7 +26,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production  # Change to Production for TLS setup
       - access_key=Qqt3KMXNlK4iCKqPhgEd
       - secret_key=Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6
-      - service_url=https://image.john-group.org
+      - service_url=http://10.13.111.3
     volumes:
       - videocryptimage_cache_volume:/cache
       - dataprotection:/keys
@@ -39,7 +39,7 @@ services:
     ports:
       - "8001:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production  
+      - ASPNETCORE_ENVIRONMENT=Production  # Change to Production for TLS setup
     volumes:
       - dataprotection:/keys
     network_mode: host
