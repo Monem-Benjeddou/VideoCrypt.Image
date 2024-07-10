@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using VideoCrypt.Image.Api.Utilities;
+using VideoCrypt.Image.Api.Repositories;
 using VideoCrypt.Image.Data;
 
 var builder = WebApplication.CreateBuilder(args);

@@ -1,4 +1,4 @@
-namespace VideoCrypt.Image.Api.Utilities;
+namespace VideoCrypt.Image.Api.Repositories;
 
 public interface IImageUploadRepository
 {

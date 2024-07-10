@@ -2,9 +2,9 @@ using System.Net;
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using VideoCrypt.Image.Api.Utilities;
 using VideoCrypt.Image.Data;
 using System.Text.Json;
+using VideoCrypt.Image.Api.Repositories;
 using VideoCrypt.Image.Data.Models;
 
 namespace VideoCrypt.Image.Api.Controller
