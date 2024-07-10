@@ -36,19 +36,6 @@ namespace VideoCrypt.Image.Api.Controller
                     return BadRequest("File is null.");
                 await imageUploadRepository.UploadFileAsync(file);
 
-                var fileName = Path.GetFileName(file.FileName);
-                if (await imageUploadRepository.FileExistsAsync(fileName))
-                {
-                    return Conflict("File already exists in the bucket.");
-                }
-
-                using (var memoryStream = new MemoryStream())
-                {
-                    await file.CopyToAsync(memoryStream);
-                    memoryStream.Seek(0, SeekOrigin.Begin);
-
-                }
-
                 return Ok("File uploaded successfully.");
             }
             catch (Exception ex)
