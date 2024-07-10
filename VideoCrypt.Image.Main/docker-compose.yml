@@ -8,14 +8,12 @@ services:
     ports:
       - "7001:7003"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production  # Change to Production for TLS setup
+      - ASPNETCORE_ENVIRONMENT=Development
       - access_key=Qqt3KMXNlK4iCKqPhgEd
       - secret_key=Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6
       - service_url=http://10.13.111.3
-    volumes:
-      - dataprotection:/keys
     network_mode: host
-
+  
   videocrypt-caching-app:
     build:
       context: ..
@@ -23,13 +21,13 @@ services:
     ports:
       - "4000:4000"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production  # Change to Production for TLS setup
+      - ASPNETCORE_ENVIRONMENT=Development
       - access_key=Qqt3KMXNlK4iCKqPhgEd
       - secret_key=Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6
       - service_url=http://10.13.111.3
+
     volumes:
       - videocryptimage_cache_volume:/cache
-      - dataprotection:/keys
     network_mode: host
 
   videocrypt-main:
@@ -37,15 +35,11 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8080:8080" 
+      - "8001:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production 
-    volumes:
-      - dataprotection:/keys
+      - ASPNETCORE_ENVIRONMENT=Development
     network_mode: host
 
 volumes:
   videocryptimage_cache_volume:
-    driver: local
-  dataprotection:
     driver: local
