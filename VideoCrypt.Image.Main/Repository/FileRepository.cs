@@ -34,10 +34,6 @@ namespace VideoCrypt.Image.Main.Repository
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await GetAccessToken());
 
             var response = await _httpClient.PostAsync($"{_apiBaseUrl}/api/Image/upload", content);
-            if (response.StatusCode == HttpStatusCode.Conflict)
-            {
-                throw new Exception("File already exists");
-            }
             response.EnsureSuccessStatusCode();
         }
         public async Task DeleteFileAsync(string fileName)
