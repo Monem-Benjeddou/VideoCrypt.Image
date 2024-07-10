@@ -76,14 +76,16 @@ public class ImageUploadRepository : IImageUploadRepository
         try
         {
             var client = GetS3Client();
-            var request = new GetObjectMetadataRequest()
+            var request = new ListObjectsRequest()
             {
                 BucketName = _sourceBucket,
-                Key = key
+                Prefix = key,
+                MaxKeys = 1
             };
 
-            var response = await client.GetObjectMetadataAsync(request);
-            return true;
+            var response = await client.ListObjectsAsync(request, CancellationToken.None);
+
+            return response.S3Objects.Any();
         }
         catch (AmazonS3Exception e) when (e.StatusCode == HttpStatusCode.NotFound)
         {
