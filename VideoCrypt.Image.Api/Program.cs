@@ -26,8 +26,8 @@ builder.Services.AddHttpClient("AuthorizedClient", client =>
     client.DefaultRequestHeaders.Add("AccessKey", "Qqt3KMXNlK4iCKqPhgEd");
 });
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("image_db")));
-
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("image_db")));
 builder.Services.AddScoped<IImageUploadRepository, ImageUploadRepository>();
 
 builder.Services.AddIdentityApiEndpoints<IdentityUser>()
