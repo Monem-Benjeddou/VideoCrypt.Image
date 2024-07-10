@@ -29,6 +29,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("image_db")));
 builder.Services.AddScoped<IImageUploadRepository, ImageUploadRepository>();
+builder.Services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
 
 builder.Services.AddIdentityApiEndpoints<IdentityUser>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
