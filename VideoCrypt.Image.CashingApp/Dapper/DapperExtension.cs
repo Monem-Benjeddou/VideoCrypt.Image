@@ -1,24 +1,43 @@
 using Dapper;
 using VideoCrypt.Image.Data.Migrations;
+using VideoCrypt.Image.Data.Models;
 
-namespace VideoCrypt.Image.Server.Dapper;
-
-public static class DapperExtensions
+namespace VideoCrypt.Image.Server.Dapper
 {
-    public static void ConfigureTypeMappings()
+    public static class DapperExtensions
     {
-        SqlMapper.SetTypeMap(
-            typeof(ImageMetadata),
-            new CustomPropertyTypeMap(
+        public static void ConfigureTypeMappings()
+        {
+            // Mapping for ImageMetadata
+            SqlMapper.SetTypeMap(
                 typeof(ImageMetadata),
-                (type, columnName) =>
-                {
-                    return type.GetProperty(
-                        columnName.Replace("file_name", "FileName")
-                            .Replace("cached_file_path", "CachedFilePath")
-                            .Replace("created_at", "CreatedAt")
-                            .Replace("url", "Url")
-                            .Replace("id", "Id"));
-                }));
+                new CustomPropertyTypeMap(
+                    typeof(ImageMetadata),
+                    (type, columnName) =>
+                    {
+                        return type.GetProperty(
+                            columnName.Replace("file_name", "FileName")
+                                .Replace("cached_file_path", "CachedFilePath")
+                                .Replace("created_at", "CreatedAt")
+                                .Replace("url", "Url")
+                                .Replace("id", "Id"));
+                    }));
+
+            // Mapping for ApiKey
+            SqlMapper.SetTypeMap(
+                typeof(ApiKey),
+                new CustomPropertyTypeMap(
+                    typeof(ApiKey),
+                    (type, columnName) =>
+                    {
+                        return type.GetProperty(
+                            columnName.Replace("key", "Key")
+                                .Replace("name", "Name")
+                                .Replace("description", "Description")
+                                .Replace("created_at", "CreatedAt")
+                                .Replace("expire_at", "ExpireAt")
+                                .Replace("id", "Id"));
+                    }));
+        }
     }
 }
