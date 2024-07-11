@@ -5,8 +5,6 @@ services:
     build:
       context: ..
       dockerfile: VideoCrypt.Image.Api/Dockerfile
-    ports:
-      - "7001:7003"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - access_key=Qqt3KMXNlK4iCKqPhgEd
@@ -14,19 +12,16 @@ services:
       - service_url=http://10.13.111.3
       - api_secrete_key=GoCdqzvvbJWyy2F3J3mm/2cXIufm5+KEeeeGRLiHg8w=
     network_mode: host
-  
+
   videocrypt-caching-app:
     build:
       context: ..
       dockerfile: VideoCrypt.Image.CashingApp/Dockerfile
-    ports:
-      - "4000:4000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - access_key=Qqt3KMXNlK4iCKqPhgEd
       - secret_key=Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6
       - service_url=http://10.13.111.3
-
     volumes:
       - videocryptimage_cache_volume:/cache
     network_mode: host
@@ -35,17 +30,16 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "8001:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     network_mode: host
+
   nginx:
     image: nginx:latest
     ports:
       - "80:80"
     volumes:
-      - /nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro  
 
 volumes:
   videocryptimage_cache_volume:
