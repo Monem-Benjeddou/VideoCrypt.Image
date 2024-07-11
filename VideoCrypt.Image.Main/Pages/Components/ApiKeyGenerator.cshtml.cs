@@ -1,10 +1,12 @@
-using Microsoft.AspNetCore.Mvc.RazorPages;
+using Hydro;
+using VideoCrypt.Image.Main.Models;
 
 namespace VideoCrypt.Image.Main.Pages.Components;
 
-public class ApiKeyGenerator : PageModel
+public class ApiKeyGenerator : HydroComponent
 {
-    public void OnGet()
+    private Task<PaginatedList<ApiKey>>? _apiKey;
+    public void DeleteApiKey(int id)
     {
         
     }

@@ -34,21 +34,29 @@ namespace VideoCrypt.Image.Main.Repository
 
             content.Add(streamContent, "file", file.FileName);
 
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await GetAccessToken());
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",  GetAccessToken());
 
             _logger.LogInformation("Uploading file {FileName} to {_apiBaseUrl}", file.FileName, _apiBaseUrl);
             var response = await _httpClient.PostAsync($"{_apiBaseUrl}/api/Image/upload", content);
+            if (IsUnAuthorized(response))
+            {
+                throw new Exception("Unauthorized user please try logging out then logging int");
+            }
             response.EnsureSuccessStatusCode();
             _logger.LogInformation("File {FileName} uploaded successfully", file.FileName);
         }
 
         public async Task DeleteFileAsync(string fileName)
         {
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await GetAccessToken());
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",  GetAccessToken());
             var uriFileName = Uri.EscapeUriString(fileName);
 
             _logger.LogInformation("Deleting file {FileName} from {_apiBaseUrl}", fileName, _apiBaseUrl);
             var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/api/Image/{uriFileName}");
+            if (IsUnAuthorized(response))
+            {
+                throw new Exception("Unauthorized user please try logging out then logging int");
+            }
             response.EnsureSuccessStatusCode();
             _logger.LogInformation("File {FileName} deleted successfully", fileName);
         }
@@ -57,11 +65,15 @@ namespace VideoCrypt.Image.Main.Repository
         {
             try
             {
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await GetAccessToken());
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",  GetAccessToken());
                 var uriFileName = Uri.EscapeUriString(fileName);
 
                 _logger.LogInformation("Generating file link for {FileName} from {_apiBaseUrl}", fileName, _apiBaseUrl);
                 var response = await _httpClient.GetAsync(new Uri($"{_apiBaseUrl}/api/Image/image/{uriFileName}"));
+                if (IsUnAuthorized(response))
+                {
+                    throw new Exception("Unauthorized user please try logging out then logging int");
+                }
                 if (response.IsSuccessStatusCode)
                 {
                     var imageUrl = await response.Content.ReadAsStringAsync();
@@ -82,10 +94,14 @@ namespace VideoCrypt.Image.Main.Repository
         {
             try
             {
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await GetAccessToken());
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",  GetAccessToken());
 
                 _logger.LogInformation("Listing files from {_apiBaseUrl} with page {Page} and pageSize {PageSize}", _apiBaseUrl, page, pageSize);
                 var response = await _httpClient.GetAsync(new Uri($"{_apiBaseUrl}/api/Image/list?page={page}&pageSize={pageSize}"));
+                if (IsUnAuthorized(response))
+                {
+                    throw new Exception("Unauthorized user please try logging out then logging int");
+                }
                 var options = new JsonSerializerOptions
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
@@ -105,10 +121,14 @@ namespace VideoCrypt.Image.Main.Repository
 
         public async Task<byte[]> GetImageAsync(string fileName)
         {
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await GetAccessToken());
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",  GetAccessToken());
 
             _logger.LogInformation("Retrieving image {FileName} from {_apiBaseUrl}", fileName, _apiBaseUrl);
-            var response = await _httpClient.GetAsync($"{_apiBaseUrl}/api/Image/image/{fileName}");
+            var response = await _httpClient.GetAsync($"{_apiBaseUrl}/api/Image/image/{fileName}");        
+            if (IsUnAuthorized(response))
+            {
+                throw new Exception("Unauthorized user please try logging out then logging int");
+            }
             response.EnsureSuccessStatusCode();
 
             var image = await response.Content.ReadAsByteArrayAsync();
@@ -116,7 +136,7 @@ namespace VideoCrypt.Image.Main.Repository
             return image;
         }
 
-        private async Task<string> GetAccessToken()
+        private string GetAccessToken()
         {
             var accessToken = _httpContextAccessor.HttpContext.Request.Cookies["access_token"];
             if (string.IsNullOrEmpty(accessToken))
@@ -137,5 +157,8 @@ namespace VideoCrypt.Image.Main.Repository
             _logger.LogInformation("Retrieved Access Token: {AccessToken}", accessToken);
             return accessToken;
         }
+
+        private bool IsUnAuthorized(HttpResponseMessage responseMessage) =>
+            responseMessage.StatusCode == HttpStatusCode.Unauthorized;
     }
 }

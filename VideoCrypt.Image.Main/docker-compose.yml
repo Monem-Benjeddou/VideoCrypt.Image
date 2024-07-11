@@ -14,7 +14,7 @@ services:
       - service_url=http://10.13.111.3
       - api_secrete_key=GoCdqzvvbJWyy2F3J3mm/2cXIufm5+KEeeeGRLiHg8w=
     network_mode: host
-  
+
   videocrypt-caching-app:
     build:
       context: ..
@@ -26,7 +26,6 @@ services:
       - access_key=Qqt3KMXNlK4iCKqPhgEd
       - secret_key=Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6
       - service_url=http://10.13.111.3
-
     volumes:
       - videocryptimage_cache_volume:/cache
     network_mode: host
@@ -40,6 +39,17 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     network_mode: host
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - videocrypt-api
+      - videocrypt-caching-app
+      - videocrypt-main
 
 volumes:
   videocryptimage_cache_volume:

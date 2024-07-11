@@ -9,10 +9,6 @@ using VideoCrypt.Image.Main.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.ConfigureKestrel(options =>
-{
-    options.ListenAnyIP(8080); 
-});
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var secret = Encoding.ASCII.GetBytes(jwtSettings["Secret"]);

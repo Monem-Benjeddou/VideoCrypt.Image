@@ -42,7 +42,7 @@
                 @for (int i = 1; i <= Model.TotalPages; i++)
                 {
                     <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
-                        <button hydro-on:click="@(()=>Model.PageHasChanged())">@i</button>
+                        <button class="page-link" hydro-on:click="@( () => Model.PageChangedAsync(i))">@i</button>
                     </li>
                 }
             </ul>

@@ -1,1 +1,37 @@
-@model ApiKeyGenerator
+@*@model ApiKeyGenerator
+<div>
+    <h2>API Keys</h2>
+    
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Key</th>
+            <th>Created At</th>
+            <th>Expires At</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        @if (Model._apiKey.Value != null || Model._apiKey is not null)
+        {
+            @foreach (var apiKey in Model._apiKey)
+            {
+                <tr>
+                    <td>@apiKey.Name</td>
+                    <td>@apiKey.Description</td>
+                    <td>@apiKey.Key</td>
+                    <td>@apiKey.CreatedAt.ToString("dd/MM/yyyy")</td>
+                    <td>@apiKey.ExpireAt?.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>
+                        <button class="btn btn-danger delete-btn" hydro-on:click="@(() => Model.DeleteApiKey(@apiKey.Id))">Delete</button>
+                    </td>
+                </tr>
+            }
+        }
+
+
+        </tbody>
+        </table>
+</div>*@

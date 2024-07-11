@@ -13,7 +13,11 @@ public class ImagesGalleryComponent(IFileRepository fileRepository) : HydroCompo
     public int PageSize { get; set; } = 8; 
     public int TotalPages { get; private set; }
 
-    public void PageHasChanged() => CurrentPage++;
+    public void PageChangedAsync(int i)
+    {
+        CurrentPage=i; 
+        Render();
+    }
 
     public Cache<Task<PaginatedList<string>>> Images => Cache(async () =>
     {
