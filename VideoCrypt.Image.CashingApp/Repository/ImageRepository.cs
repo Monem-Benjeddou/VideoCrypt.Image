@@ -293,11 +293,9 @@ namespace VideoCrypt.Image.CashingApp.Repository
 
         private void EnsureCacheDirectoryExists(string cacheDirectory)
         {
-            if (!Directory.Exists(cacheDirectory))
-            {
-                _logger.LogInformation($"Creating cache directory: {cacheDirectory}");
-                Directory.CreateDirectory(cacheDirectory);
-            }
+            if (Directory.Exists(cacheDirectory)) return;
+            _logger.LogInformation($@"Creating cache directory: {cacheDirectory}");
+            Directory.CreateDirectory(cacheDirectory);
         }
     }
 }
