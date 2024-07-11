@@ -286,7 +286,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
 
         private string GenerateCachedFileUrl(string fileName)
         {
-            var url = $"image.john-group.org/cache/{fileName}";
+            var url = $"https://image.john-group.org/cache/{fileName}";
             _logger.LogInformation($"Generated URL for cached file: {url}");
             return url;
         }
