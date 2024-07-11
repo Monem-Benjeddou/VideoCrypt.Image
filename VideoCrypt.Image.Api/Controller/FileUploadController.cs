@@ -22,7 +22,7 @@ public class ImageController(
     private readonly IHttpClientFactory _httpClientFactory = 
         httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
 
-    private string _baseUrl = "http://51.38.80.38:4000";
+    private string _baseUrl = "image.john-group.org";
 
     //private string _baseUrl = "http://localhost:4000";
 
@@ -116,7 +116,7 @@ public class ImageController(
         try
         {
             using var client = CreateAuthorizedClient();
-            var response = await client.GetAsync($"{_baseUrl}:4000/api/file/download/{fileName}");
+            var response = await client.GetAsync($"{_baseUrl}/api/file/download/{fileName}");
             if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
                 await SignOutUser();

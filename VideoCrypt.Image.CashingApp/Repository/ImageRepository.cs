@@ -286,14 +286,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
 
         private string GenerateCachedFileUrl(string fileName)
         {
-            var host = Dns.GetHostEntry(Dns.GetHostName());
-            var ip = host.AddressList
-                .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
-                .Select(ip => ip.ToString())
-                .Where(ip => ip.Contains("51"))
-                .FirstOrDefault();
-
-            var url = $"http://{ip}:4000/cache/{fileName}";
+            var url = $"image.john-group.org/cache/{fileName}";
             _logger.LogInformation($"Generated URL for cached file: {url}");
             return url;
         }
