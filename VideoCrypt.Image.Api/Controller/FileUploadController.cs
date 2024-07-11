@@ -22,7 +22,7 @@ public class ImageController(
     private readonly IHttpClientFactory _httpClientFactory = 
         httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
 
-    private string _baseUrl = "image.john-group.org";
+    private string _baseUrl = "https://image.john-group.org";
 
     //private string _baseUrl = "http://localhost:4000";
 
