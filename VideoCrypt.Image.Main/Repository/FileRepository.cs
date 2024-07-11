@@ -12,7 +12,7 @@ namespace VideoCrypt.Image.Main.Repository
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<FileRepository> _logger;
         //private string _apiBaseUrl = "http://51.38.80.38:7003";
-        private string _apiBaseUrl = "http://51.38.80.38:7003";
+        private string _apiBaseUrl = "https://api.john-group.org";
 
         public FileRepository(HttpClient httpClient, IHttpContextAccessor httpContextAccessor, ILogger<FileRepository> logger)
         {

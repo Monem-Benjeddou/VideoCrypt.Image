@@ -7,22 +7,15 @@ namespace VideoCrypt.Image.Main.Controllers
     [Authorize]
     [ApiController]
     [Route("Image")]
-    public class ImageController : Controller
+    public class ImageController(IFileRepository fileRepository) : Controller
     {
-        private readonly IFileRepository _fileRepository;
-
-        public ImageController(IFileRepository fileRepository)
-        {
-            _fileRepository = fileRepository;
-        }
-
         [HttpPost("deleteImage")]
         public async Task<IActionResult> DeleteImage([FromForm] string imageUrl)
         {
             try
             {
                 var fileName = imageUrl.Split('/').Last();
-                await _fileRepository.DeleteFileAsync(fileName);
+                await fileRepository.DeleteFileAsync(fileName);
                 return Json(new { success = true });
             }
             catch (Exception ex)
@@ -35,7 +28,7 @@ namespace VideoCrypt.Image.Main.Controllers
         {
             try
             {
-                var fileUrl = await _fileRepository.GenerateFileLink(fileName);
+                var fileUrl = await fileRepository.GenerateFileLink(fileName);
                 if (string.IsNullOrEmpty(fileUrl)) return NotFound("File share link is not found");
 
                 return Ok(new { url = fileUrl });
