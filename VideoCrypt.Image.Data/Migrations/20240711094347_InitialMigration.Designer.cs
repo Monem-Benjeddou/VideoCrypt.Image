@@ -12,8 +12,8 @@ using VideoCrypt.Image.Data;
 namespace VideoCrypt.Image.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240710173527_AddedTheApiKey")]
-    partial class AddedTheApiKey
+    [Migration("20240711094347_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -252,8 +252,16 @@ namespace VideoCrypt.Image.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("name");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("user_id");
+
                     b.HasKey("Id")
                         .HasName("p_k_api_keys");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("i_x_api_keys_user_id");
 
                     b.ToTable("api_keys");
                 });
@@ -341,6 +349,18 @@ namespace VideoCrypt.Image.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("VideoCrypt.Image.Data.Models.ApiKey", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("f_k_api_keys__asp_net_users_user_id");
+
+                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }
