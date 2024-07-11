@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Identity;
 
 namespace VideoCrypt.Image.Data.Models;
 
@@ -10,4 +11,7 @@ public class ApiKey
     public string? Description { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? ExpireAt { get; set; }
+    public string UserId { get; set; } 
+    
+    public IdentityUser User { get; set; }
 }

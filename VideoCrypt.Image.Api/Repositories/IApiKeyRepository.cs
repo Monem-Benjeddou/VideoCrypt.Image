@@ -1,11 +1,14 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using VideoCrypt.Image.Data.Models;
 
-namespace VideoCrypt.Image.Api.Repositories;
-
-public interface IApiKeyRepository
+namespace VideoCrypt.Image.Api.Repositories
 {
-    Task<IEnumerable<ApiKey>> GetAllApiKeysAsync();
-    Task<ApiKey> GetApiKeyByIdAsync(int id);
-    Task CreateApiKeyAsync(ApiKey apiKey);
-    Task DeleteApiKeyAsync(ApiKey apiKey);
+    public interface IApiKeyRepository
+    {
+        Task<IEnumerable<ApiKey>> GetAllApiKeysAsync(string userId);
+        Task<ApiKey> GetApiKeyByIdAsync(int id,string userId);
+        Task CreateApiKeyAsync(ApiKey apiKey);
+        Task DeleteApiKeyAsync(ApiKey apiKey);
+    }
 }

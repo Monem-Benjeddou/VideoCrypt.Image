@@ -1,9 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using VideoCrypt.Image.Api.Data;
 using VideoCrypt.Image.Api.Models;
 using VideoCrypt.Image.Api.Repositories;
 using VideoCrypt.Image.Data.Models;
@@ -13,26 +11,25 @@ namespace VideoCrypt.Image.Api.Controller
     [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    public class ApiKeyController : ControllerBase
+    public class ApiKeyController(IApiKeyRepository apiKeyRepository, UserManager<IdentityUser> userManager)
+        : ControllerBase
     {
-        private readonly IApiKeyRepository _apiKeyRepository;
-
-        public ApiKeyController(IApiKeyRepository apiKeyRepository)
-        {
-            _apiKeyRepository = apiKeyRepository ?? throw new ArgumentNullException(nameof(apiKeyRepository));
-        }
+        private readonly IApiKeyRepository _apiKeyRepository = apiKeyRepository ?? throw new ArgumentNullException(nameof(apiKeyRepository));
+        private readonly UserManager<IdentityUser> _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ApiKey>>> GetApiKeys()
         {
-            var apiKeys = await _apiKeyRepository.GetAllApiKeysAsync();
+            var user = await _userManager.GetUserAsync(User);
+            var apiKeys = await _apiKeyRepository.GetAllApiKeysAsync(user.Id);
             return Ok(apiKeys);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<ApiKey>> GetApiKey(int id)
         {
-            var apiKey = await _apiKeyRepository.GetApiKeyByIdAsync(id);
+            var user = await _userManager.GetUserAsync(User);
+            var apiKey = await _apiKeyRepository.GetApiKeyByIdAsync(id, user.Id);
             if (apiKey == null)
                 return NotFound();
 
@@ -45,13 +42,17 @@ namespace VideoCrypt.Image.Api.Controller
             if (key == null)
                 return BadRequest("API key data is null.");
 
+            var user = await _userManager.GetUserAsync(User);
+            var apiKeyString = ApiKeyGenerator.GenerateApiKey(user.Id);
+
             var apiKey = new ApiKey
             {
-                Key = Guid.NewGuid().ToString(), // Generate a new unique key
+                Key = apiKeyString, // Generate a new unique key with a user signature
                 Name = key.Name,
                 Description = key.Description,
                 CreatedAt = DateTime.UtcNow,
-                ExpireAt = key.ExpireAt
+                ExpireAt = key.ExpireAt,
+                UserId = user.Id // Associate the API key with the user
             };
 
             await _apiKeyRepository.CreateApiKeyAsync(apiKey);
@@ -61,7 +62,8 @@ namespace VideoCrypt.Image.Api.Controller
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteApiKey(int id)
         {
-            var apiKey = await _apiKeyRepository.GetApiKeyByIdAsync(id);
+            var user = await _userManager.GetUserAsync(User);
+            var apiKey = await _apiKeyRepository.GetApiKeyByIdAsync(id, user.Id);
             if (apiKey == null)
                 return NotFound();
 
