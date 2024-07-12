@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using VideoCrypt.Image.CashingApp.Repository;
@@ -15,7 +16,7 @@ namespace VideoCrypt.Image.CashingApp.Controllers
 
         public ImageController(IImageRepository imageRepository)
         {
-            _imageRepository = imageRepository;
+            _imageRepository = imageRepository ?? throw new ArgumentNullException(nameof(imageRepository));
         }
 
         [HttpGet("{fileName}")]
@@ -23,7 +24,7 @@ namespace VideoCrypt.Image.CashingApp.Controllers
         {
             try
             {
-                var url = await _imageRepository.GetSharedFileUrlAsync(fileName);
+                var url = await _imageRepository.GetSharedFileUrlAsync(fileName, GetUserId());
                 return Ok(url);
             }
             catch (Exception ex)
@@ -37,12 +38,11 @@ namespace VideoCrypt.Image.CashingApp.Controllers
         {
             try
             {
-                var paginatedList = await _imageRepository.ListImagesAsync(page, pageSize);
+                var paginatedList = await _imageRepository.ListImagesAsync(GetUserId(), page, pageSize);
                 return Ok(paginatedList);
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
@@ -52,9 +52,9 @@ namespace VideoCrypt.Image.CashingApp.Controllers
         {
             try
             {
-                var deletedFromCache = await _imageRepository.DeleteCachedFileAsync(fileName);
+                var deletedFromCache = await _imageRepository.DeleteCachedFileAsync(fileName, GetUserId());
 
-                var deletedFromMinio = await _imageRepository.DeleteFileFromBucketAsync(fileName);
+                var deletedFromMinio = await _imageRepository.DeleteFileFromBucketAsync(fileName, GetUserId());
 
                 if (deletedFromCache && deletedFromMinio)
                 {
@@ -67,9 +67,18 @@ namespace VideoCrypt.Image.CashingApp.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error encountered: '{ex.Message}' when deleting file");
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
+        }
+
+        private string GetUserId()
+        {
+            if (!Request.Headers.TryGetValue("X-UserId", out var userIdHeader))
+            {
+                return null;
+            }
+
+            return userIdHeader;
         }
     }
 }

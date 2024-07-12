@@ -7,6 +7,7 @@ using VideoCrypt.Image.CashingApp.Repository;
 using VideoCrypt.Image.Data.Models;
 using VideoCrypt.Image.Server.Authorization;
 using VideoCrypt.Image.Server.Dapper;
+using VideoCrypt.Image.Server.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options =>
@@ -51,6 +52,7 @@ if (!Directory.Exists(cachePath))
     Directory.CreateDirectory(cachePath);
 }
 app.UseCors(); 
+app.UseMiddleware<UserIdValidationMiddleware>();
 
 app.UseStaticFiles(new StaticFileOptions
 {

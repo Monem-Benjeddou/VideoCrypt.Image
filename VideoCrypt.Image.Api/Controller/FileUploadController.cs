@@ -1,181 +1,204 @@
+using System;
 using System.Net;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading.Tasks;
 using Dapper;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using VideoCrypt.Image.Data;
-using System.Text.Json;
-using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.Logging;
 using VideoCrypt.Image.Api.Repositories;
+using VideoCrypt.Image.Data;
 using VideoCrypt.Image.Data.Models;
 
-namespace VideoCrypt.Image.Api.Controller;
-
-[Authorize]
-[ApiController]
-[Route("api/[controller]")]
-public class ImageController(
-    IHttpClientFactory httpClientFactory,
-    ApplicationDbContext context,
-    IImageUploadRepository imageUploadRepository)
-    : ControllerBase
+namespace VideoCrypt.Image.Api.Controllers
 {
-    private readonly IHttpClientFactory _httpClientFactory = 
-        httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
-
-    private string _baseUrl = "https://image.john-group.org";
-
-    //private string _baseUrl = "http://localhost:4000";
-
-    private HttpClient CreateAuthorizedClient() => _httpClientFactory.CreateClient("AuthorizedClient");
-
-    [HttpPost("upload")]
-    public async Task<IActionResult> Upload([FromForm] IFormFile file)
+    [Authorize]
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ImageController(
+        IHttpClientFactory httpClientFactory,
+        ApplicationDbContext context,
+        IImageUploadRepository imageUploadRepository)
+        : ControllerBase
     {
-        try
-        {
-            if (file == null)
-                return BadRequest("File is null.");
-            await imageUploadRepository.UploadFileAsync(file);
+        private readonly IHttpClientFactory _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
+        private readonly ApplicationDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
+        private readonly IImageUploadRepository _imageUploadRepository = imageUploadRepository ?? throw new ArgumentNullException(nameof(imageUploadRepository));
+        private readonly string _baseUrl = "https://image.john-group.org";
 
-            return Ok("File uploaded successfully.");
-        }
-        catch (Exception ex)
+        private HttpClient CreateAuthorizedClient()
         {
-            Console.WriteLine(ex.Message);
-            return StatusCode(500, $"Internal server error: {ex.Message}");
+            var client = _httpClientFactory.CreateClient("AuthorizedClient");
+            var userId = GetUserId();
+            client.DefaultRequestHeaders.Add("X-UserId", userId); 
+            return client;
         }
-    }
 
-    [HttpDelete("{fileName}")]
-    public async Task<IActionResult> DeleteImage(string fileName)
-    {
-        try
+        [HttpPost("upload")]
+        public async Task<IActionResult> Upload([FromForm] IFormFile file)
         {
-            using var client = CreateAuthorizedClient();
-            var response = await client.DeleteAsync($"{_baseUrl}/api/Image/{fileName}");
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            try
             {
-                await SignOutUser();
-                return Unauthorized("Unauthorized access. Please sign in again.");
+                if (file == null)
+                    return BadRequest("File is null.");
+
+                await _imageUploadRepository.UploadFileAsync(file, GetUserId());
+
+                return Ok("File uploaded successfully.");
             }
-            if (response.IsSuccessStatusCode) return Ok($"File '{fileName}' deleted successfully.");
-            return response.StatusCode == HttpStatusCode.NotFound
-                ? NotFound("File not found.")
-                : StatusCode((int)response.StatusCode, $"Failed to delete file: {response.ReasonPhrase}");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-            return StatusCode(500, $"Internal server error: {ex.Message}");
-        }
-    }
-
-    [HttpGet("image/{fileName}")]
-    public async Task<IActionResult> GetImage(string fileName)
-    {
-        try
-        {
-            using var connection = context.CreateConnection();
-            var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(
-                "SELECT * FROM image_metadata WHERE file_name = @FileName", new { FileName = fileName });
-
-            if (cachedImage != null)
-                return Ok(cachedImage.Url);
-
-            using var client = CreateAuthorizedClient();
-            var response = await client.GetAsync($"{_baseUrl}/api/image/{fileName}");
-
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            catch (Exception ex)
             {
-                await SignOutUser();
-                return Unauthorized("Unauthorized access. Please sign in again.");
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
-
-            if (response.IsSuccessStatusCode)
-            {
-                var imageUrl = await response.Content.ReadAsStringAsync();
-                return Ok(imageUrl);
-            }
-
-            return response.StatusCode switch
-            {
-                HttpStatusCode.NotFound => NotFound("Image not found."),
-                _ => StatusCode((int)response.StatusCode, $"Failed to retrieve image: {response.ReasonPhrase}")
-            };
         }
-        catch (Exception ex)
+
+        [HttpDelete("{fileName}")]
+        public async Task<IActionResult> DeleteImage(string fileName)
         {
-            Console.WriteLine(ex.Message);
-            return StatusCode(500, $"Internal server error: {ex.Message}");
-        }
-    }
-
-    [HttpGet("download/{fileName}")]
-    public async Task<IActionResult> DownloadFile(string fileName)
-    {
-        try
-        {
-            using var client = CreateAuthorizedClient();
-            var response = await client.GetAsync($"{_baseUrl}/api/file/download/{fileName}");
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            try
             {
-                await SignOutUser();
-                return Unauthorized("Unauthorized access. Please sign in again.");
-            }
+                using var client = CreateAuthorizedClient();
+                var response = await client.DeleteAsync($"{_baseUrl}/api/Image/{fileName}");
 
-            if (!response.IsSuccessStatusCode)
-            {
-                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                    return NotFound("File not found.");
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    await SignOutUser();
+                    return Unauthorized("Unauthorized access. Please sign in again.");
+                }
 
-                return StatusCode((int)response.StatusCode, $"Failed to download file: {response.ReasonPhrase}");
-            }
+                if (response.IsSuccessStatusCode) return Ok($"File '{fileName}' deleted successfully.");
 
-            var fileBytes = await response.Content.ReadAsByteArrayAsync();
-            return File(fileBytes, "application/octet-stream", fileName);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-            return StatusCode(500, $"Internal server error: {ex.Message}");
-        }
-    }
-
-    [HttpGet("list")]
-    public async Task<IActionResult> ListFiles(int page = 1, int pageSize = 10)
-    {
-        try
-        {
-            using var client = CreateAuthorizedClient();
-            var response = await client.GetAsync($"{_baseUrl}/api/Image/list?page={page}&pageSize={pageSize}");
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
-            {
-                await SignOutUser();
-                return Unauthorized("Unauthorized access. Please sign in again.");
-            }
-
-            if (!response.IsSuccessStatusCode)
-            {
                 return response.StatusCode == HttpStatusCode.NotFound
-                    ? NotFound("No files found.")
-                    : StatusCode((int)response.StatusCode, $"Failed to get files: {response.ReasonPhrase}");
+                    ? NotFound("File not found.")
+                    : StatusCode((int)response.StatusCode, $"Failed to delete file: {response.ReasonPhrase}");
             }
-            var options = new JsonSerializerOptions
+            catch (Exception ex)
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            };
-            var responseBody = await response.Content.ReadAsStringAsync();
-            var files = JsonSerializer.Deserialize<PaginatedList<string>>(responseBody,options);
-            return Ok(files);
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
-        catch (Exception ex)
+
+        [HttpGet("image/{fileName}")]
+        public async Task<IActionResult> GetImage(string fileName)
         {
-            Console.WriteLine(ex.Message);
-            return StatusCode(500, $"Internal server error: {ex.Message}");
+            try
+            {
+                using var connection = _context.CreateConnection();
+                var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(
+                    "SELECT * FROM image_metadata WHERE file_name = @FileName", new { FileName = fileName });
+
+                if (cachedImage != null)
+                    return Ok(cachedImage.Url);
+
+                using var client = CreateAuthorizedClient();
+                var response = await client.GetAsync($"{_baseUrl}/api/image/{fileName}");
+
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    await SignOutUser();
+                    return Unauthorized("Unauthorized access. Please sign in again.");
+                }
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var imageUrl = await response.Content.ReadAsStringAsync();
+                    return Ok(imageUrl);
+                }
+
+                return response.StatusCode switch
+                {
+                    HttpStatusCode.NotFound => NotFound("Image not found."),
+                    _ => StatusCode((int)response.StatusCode, $"Failed to retrieve image: {response.ReasonPhrase}")
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
-    }
-    private async Task SignOutUser()
-    {
-        await HttpContext.SignOutAsync();
+
+        [HttpGet("download/{fileName}")]
+        public async Task<IActionResult> DownloadFile(string fileName)
+        {
+            try
+            {
+                using var client = CreateAuthorizedClient();
+                var response = await client.GetAsync($"{_baseUrl}/api/file/download/{fileName}");
+
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    await SignOutUser();
+                    return Unauthorized("Unauthorized access. Please sign in again.");
+                }
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    if (response.StatusCode == HttpStatusCode.NotFound)
+                        return NotFound("File not found.");
+
+                    return StatusCode((int)response.StatusCode, $"Failed to download file: {response.ReasonPhrase}");
+                }
+
+                var fileBytes = await response.Content.ReadAsByteArrayAsync();
+                return File(fileBytes, "application/octet-stream", fileName);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("list")]
+        public async Task<IActionResult> ListFiles(int page = 1, int pageSize = 10)
+        {
+            try
+            {
+                using var client = CreateAuthorizedClient();
+                var response = await client.GetAsync($"{_baseUrl}/api/Image/list?page={page}&pageSize={pageSize}");
+
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    await SignOutUser();
+                    return Unauthorized("Unauthorized access. Please sign in again.");
+                }
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return response.StatusCode == HttpStatusCode.NotFound
+                        ? NotFound("No files found.")
+                        : StatusCode((int)response.StatusCode, $"Failed to get files: {response.ReasonPhrase}");
+                }
+
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                };
+
+                var responseBody = await response.Content.ReadAsStringAsync();
+                var files = JsonSerializer.Deserialize<PaginatedList<string>>(responseBody, options);
+                return Ok(files);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        private string GetUserId()
+        {
+            return User.Identity.Name;
+        }
+
+        private async Task SignOutUser()
+        {
+            await HttpContext.SignOutAsync();
+        }
     }
 }
