@@ -1,6 +1,8 @@
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Dapper;
@@ -31,7 +33,7 @@ namespace VideoCrypt.Image.Api.Controllers
         private HttpClient CreateAuthorizedClient()
         {
             var client = _httpClientFactory.CreateClient("AuthorizedClient");
-            var userId = GetUserId();
+            var userId = GenerateBucketName();
             client.DefaultRequestHeaders.Add("X-UserId", userId); 
             return client;
         }
@@ -44,7 +46,7 @@ namespace VideoCrypt.Image.Api.Controllers
                 if (file == null)
                     return BadRequest("File is null.");
 
-                await _imageUploadRepository.UploadFileAsync(file, GetUserId());
+                await _imageUploadRepository.UploadFileAsync(file, GenerateBucketName());
 
                 return Ok("File uploaded successfully.");
             }
@@ -191,11 +193,23 @@ namespace VideoCrypt.Image.Api.Controllers
             }
         }
 
-        private string GetUserId()
+        public string GenerateBucketName()
         {
-            return User.Identity.Name;
-        }
+            var userId = User.Identity.Name;
+            using var md5 = MD5.Create();
+            var inputBytes = Encoding.UTF8.GetBytes(userId);
+            var hashBytes = md5.ComputeHash(inputBytes);
+            var hashString = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+            
+            var bucketName = hashString;
 
+            if (bucketName.Length > 63)
+            {
+                bucketName = bucketName.Substring(0, 63);
+            }
+
+            return bucketName;
+        }
         private async Task SignOutUser()
         {
             await HttpContext.SignOutAsync();
