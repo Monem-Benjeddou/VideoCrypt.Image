@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Identity;
 
 namespace VideoCrypt.Image.Data.Models;
 
@@ -18,4 +19,6 @@ public class ImageMetadata
 
     [Required]
     public DateTime CreatedAt { get; set; }
+    public string UserId { get; set; }
+    public IdentityUser User { get; set; }
 }
