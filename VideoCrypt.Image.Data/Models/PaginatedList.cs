@@ -6,7 +6,6 @@ namespace VideoCrypt.Image.Data.Models
         public int PageIndex { get; set; }
         public int TotalPages { get; set; }
         public string ContinuationToken { get; set; }
-
         public bool HasNextPage => PageIndex < TotalPages;
         public bool HasPreviousPage => PageIndex > 1;
     }

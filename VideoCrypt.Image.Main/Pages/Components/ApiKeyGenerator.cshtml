@@ -1,7 +1,7 @@
-@*@model ApiKeyGenerator
+@model ApiKeyGenerator
 <div>
     <h2>API Keys</h2>
-    
+
     <table class="table table-striped">
         <thead>
         <tr>
@@ -14,24 +14,28 @@
         </tr>
         </thead>
         <tbody>
-        @if (Model._apiKey.Value != null || Model._apiKey is not null)
+        @if (Model.ApiKeys is not null)
         {
-            @foreach (var apiKey in Model._apiKey)
+            var apiKeys = await Model.ApiKeys.Value;
+            if (apiKeys.Items.Any())
             {
-                <tr>
-                    <td>@apiKey.Name</td>
-                    <td>@apiKey.Description</td>
-                    <td>@apiKey.Key</td>
-                    <td>@apiKey.CreatedAt.ToString("dd/MM/yyyy")</td>
-                    <td>@apiKey.ExpireAt?.ToString("dd/MM/yyyy HH:mm")</td>
-                    <td>
-                        <button class="btn btn-danger delete-btn" hydro-on:click="@(() => Model.DeleteApiKey(@apiKey.Id))">Delete</button>
-                    </td>
-                </tr>
+                @foreach (var apiKey in apiKeys.Items)
+                {
+                    <tr>
+                        <td>@apiKey.Name</td>
+                        <td>@apiKey.Description</td>
+                        <td>@apiKey.Key</td>
+                        <td>@apiKey.CreatedAt.ToString("dd/MM/yyyy")</td>
+                        <td>@apiKey.ExpireAt?.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>
+                            <button class="btn btn-danger delete-btn" hydro-on:click="@(() => Model.DeleteApiKey(@apiKey.Id))">Delete</button>
+                        </td>
+                    </tr>
+                }
             }
         }
 
 
         </tbody>
-        </table>
-</div>*@
+    </table>
+</div>

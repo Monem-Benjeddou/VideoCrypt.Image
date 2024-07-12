@@ -10,5 +10,6 @@ namespace VideoCrypt.Image.Api.Repositories
         Task<ApiKey> GetApiKeyByIdAsync(int id,string userId);
         Task CreateApiKeyAsync(ApiKey apiKey);
         Task DeleteApiKeyAsync(ApiKey apiKey);
+        Task<PaginatedList<ApiKey>> GetApiKeysPaginatedAsync(string userId, int pageNumber, int pageSize);
     }
 }

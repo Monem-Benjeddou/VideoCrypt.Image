@@ -119,5 +119,20 @@ namespace VideoCrypt.Image.Api.Controller
                 return StatusCode(500, "Internal server error");
             }
         }
+        [HttpGet]
+        public async Task<ActionResult<PaginatedList<ApiKey>>> GetApiKeys([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+                var apiKeys = await _apiKeyRepository.GetApiKeysPaginatedAsync(user.Id, pageNumber, pageSize);
+                return Ok(apiKeys);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while getting API keys.");
+                return StatusCode(500, "Internal server error");
+            }
+        }
     }
 }

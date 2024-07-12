@@ -9,7 +9,7 @@ public class ImagesGalleryComponent(IFileRepository fileRepository) : HydroCompo
     private IFileRepository _fileRepository { get; } = fileRepository;
     private Task<PaginatedList<string>>? _cachedImages;
 
-    public int CurrentPage { get; set; }
+    public int CurrentPage { get; set; } = 1;
     public int PageSize { get; set; } = 8; 
     public int TotalPages { get; private set; }
 
@@ -26,6 +26,7 @@ public class ImagesGalleryComponent(IFileRepository fileRepository) : HydroCompo
         _cachedImages =  _fileRepository.ListFilesAsync(CurrentPage,PageSize);
         var images = await _cachedImages;
         TotalPages = images.TotalPages;
+        CurrentPage = 1;
         Render();
         return images != null && images.Items.Any() ? images : new PaginatedList<string>();
     });
