@@ -25,7 +25,7 @@ namespace VideoCrypt.Image.Api.Controller
         private readonly UserManager<IdentityUser> _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
         private readonly ILogger<ApiKeyController> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-        [HttpGet]
+        [HttpGet("all")]
         public async Task<ActionResult<IEnumerable<ApiKey>>> GetAllApiKeys()
         {
             try
