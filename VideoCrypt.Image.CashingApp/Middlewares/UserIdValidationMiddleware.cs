@@ -16,6 +16,6 @@ public class UserIdValidationMiddleware(RequestDelegate next)
             }
         }
 
-        await _next(context);
+        await next(context);
     }
 }
