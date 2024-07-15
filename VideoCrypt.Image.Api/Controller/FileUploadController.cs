@@ -34,7 +34,7 @@ namespace VideoCrypt.Image.Api.Controllers
         {
             var client = _httpClientFactory.CreateClient("AuthorizedClient");
             var userId = GenerateBucketName();
-            client.DefaultRequestHeaders.Add("X-UserId", userId); 
+            client.DefaultRequestHeaders.Add("X-UserId", $"{userId}imagesbucket"); 
             return client;
         }
 
