@@ -125,7 +125,7 @@ namespace VideoCrypt.Image.Api.Repositories
 
         private async Task<string> GetUserBucketAsync(string userId)
         {
-            var bucketPrefix = $"{userId}imagesbucket";
+            var bucketPrefix = $"{userId}";
             var _s3Client = GetS3Client();
             var listBucketsResponse = await _s3Client.ListBucketsAsync();
 

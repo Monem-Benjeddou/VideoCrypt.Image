@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Dapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using VideoCrypt.Image.Api.Repositories;
@@ -22,7 +23,8 @@ namespace VideoCrypt.Image.Api.Controllers
     public class ImageController(
         IHttpClientFactory httpClientFactory,
         ApplicationDbContext context,
-        IImageUploadRepository imageUploadRepository)
+        IImageUploadRepository imageUploadRepository,
+        UserManager<IdentityUser> userManager)
         : ControllerBase
     {
         private readonly IHttpClientFactory _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
@@ -30,6 +32,8 @@ namespace VideoCrypt.Image.Api.Controllers
         private readonly IImageUploadRepository _imageUploadRepository = imageUploadRepository ?? throw new ArgumentNullException(nameof(imageUploadRepository));
         private readonly string _baseUrl = "https://image.john-group.org";
 
+        private readonly UserManager<IdentityUser> _userManager =
+            userManager ?? throw new ArgumentNullException(nameof(userManager));
         private  HttpClient CreateAuthorizedClient()
         {
             var client = _httpClientFactory.CreateClient("AuthorizedClient");
@@ -193,22 +197,10 @@ namespace VideoCrypt.Image.Api.Controllers
             }
         }
 
-        public string GenerateBucketName()
+        public async Task<string> GenerateBucketName()
         {
-            var userId = User.Identity.Name;
-            using var md5 = MD5.Create();
-            var inputBytes = Encoding.UTF8.GetBytes(userId);
-            var hashBytes = md5.ComputeHash(inputBytes);
-            var hashString = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
-            
-            var bucketName = hashString;
-
-            if (bucketName.Length > 63)
-            {
-                bucketName = bucketName.Substring(0, 63);
-            }
-
-            return bucketName;
+            var user = await _userManager.GetUserAsync(User);
+            return user.Id;
         }
         private async Task SignOutUser()
         {
