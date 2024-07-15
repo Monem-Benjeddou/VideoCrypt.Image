@@ -4,13 +4,18 @@ public class UserIdValidationMiddleware(RequestDelegate next)
 {
     public async Task InvokeAsync(HttpContext context)
     {
-        if (!context.Request.Headers.ContainsKey("X-UserId"))
+        var path = context.Request.Path.Value;
+
+        if (!path.Contains("/cache/", StringComparison.OrdinalIgnoreCase))
         {
-            context.Response.StatusCode = StatusCodes.Status400BadRequest;
-            await context.Response.WriteAsync("X-UserId header is required.");
-            return;
+            if (!context.Request.Headers.ContainsKey("X-UserId"))
+            {
+                context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                await context.Response.WriteAsync("X-UserId header is required.");
+                return;
+            }
         }
 
-        await next(context);
+        await _next(context);
     }
 }
