@@ -34,10 +34,10 @@ namespace VideoCrypt.Image.Api.Controllers
 
         private readonly UserManager<IdentityUser> _userManager =
             userManager ?? throw new ArgumentNullException(nameof(userManager));
-        private  HttpClient CreateAuthorizedClient()
+        private async Task<HttpClient>  CreateAuthorizedClient()
         {
             var client = _httpClientFactory.CreateClient("AuthorizedClient");
-            var userId = GenerateBucketName();
+            var userId = await GenerateBucketName();
             client.DefaultRequestHeaders.Add("X-UserId", $"{userId}"); 
             return client;
         }
@@ -50,7 +50,7 @@ namespace VideoCrypt.Image.Api.Controllers
                 if (file == null)
                     return BadRequest("File is null.");
 
-                await _imageUploadRepository.UploadFileAsync(file, GenerateBucketName());
+                await _imageUploadRepository.UploadFileAsync(file, await GenerateBucketName());
 
                 return Ok("File uploaded successfully.");
             }
@@ -66,7 +66,7 @@ namespace VideoCrypt.Image.Api.Controllers
         {
             try
             {
-                using var client = CreateAuthorizedClient();
+                using var client = await CreateAuthorizedClient();
                 var response = await client.DeleteAsync($"{_baseUrl}/api/Image/{fileName}");
 
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
@@ -100,7 +100,7 @@ namespace VideoCrypt.Image.Api.Controllers
                 if (cachedImage != null)
                     return Ok(cachedImage.Url);
 
-                using var client = CreateAuthorizedClient();
+                using var client = await CreateAuthorizedClient();
                 var response = await client.GetAsync($"{_baseUrl}/api/image/{fileName}");
 
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
@@ -133,7 +133,7 @@ namespace VideoCrypt.Image.Api.Controllers
         {
             try
             {
-                using var client = CreateAuthorizedClient();
+                using var client = await CreateAuthorizedClient();
                 var response = await client.GetAsync($"{_baseUrl}/api/file/download/{fileName}");
 
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
@@ -165,7 +165,7 @@ namespace VideoCrypt.Image.Api.Controllers
         {
             try
             {
-                using var client = CreateAuthorizedClient();
+                using var client = await CreateAuthorizedClient();
                 var response = await client.GetAsync($"{_baseUrl}/api/Image/list?page={page}&pageSize={pageSize}");
 
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
@@ -197,7 +197,7 @@ namespace VideoCrypt.Image.Api.Controllers
             }
         }
 
-        public async Task<string> GenerateBucketName()
+        public async Task<string>  GenerateBucketName()
         {
             var user = await _userManager.GetUserAsync(User);
             return user.Id;
