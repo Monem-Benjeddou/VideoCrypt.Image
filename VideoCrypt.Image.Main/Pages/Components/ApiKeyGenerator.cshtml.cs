@@ -6,7 +6,7 @@ namespace VideoCrypt.Image.Main.Pages.Components;
 
 public class ApiKeyGenerator(IApiKeyRepository _apiKeyRepository) : HydroComponent
 {
-    private Task<PaginatedList<ApiKey>>? _apiKeysCache;
+    private Task<PaginatedList<ApiKey>> _apiKeysCache;
     
     public int CurrentPage { get; set; } = 1;
     public int PageSize { get; set; } = 8; 

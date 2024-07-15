@@ -26,7 +26,7 @@ namespace VideoCrypt.Image.Api.Controller
         private readonly ILogger<ApiKeyController> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ApiKey>>> GetApiKeys()
+        public async Task<ActionResult<IEnumerable<ApiKey>>> GetAllApiKeys()
         {
             try
             {

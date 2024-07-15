@@ -45,18 +45,32 @@ namespace VideoCrypt.Image.Main.Repository
 
             _logger.LogInformation("Getting all API keys from {_apiBaseUrl}", _apiBaseUrl);
             var response = await _httpClient.GetAsync($"{_apiBaseUrl}/api/ApiKey?page={page}&pageSize={pageSize}");
+
             if (IsUnAuthorized(response))
             {
                 throw new Exception("Unauthorized user. Please try logging out then logging in.");
             }
-            response.EnsureSuccessStatusCode();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorResponse = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Failed to retrieve API keys. Status code: {StatusCode}, Response: {Response}", response.StatusCode, errorResponse);
+                response.EnsureSuccessStatusCode(); // This will still throw an exception with detailed info.
+            }
 
             var responseBody = await response.Content.ReadAsStringAsync();
             var apiKeys = JsonSerializer.Deserialize<PaginatedList<ApiKey>>(responseBody);
 
+            if (apiKeys == null)
+            {
+                _logger.LogError("Failed to deserialize API keys. Response: {Response}", responseBody);
+                throw new Exception("Failed to retrieve API keys. Please try again later.");
+            }
+
             _logger.LogInformation("All API keys retrieved successfully");
             return apiKeys;
         }
+
 
         public async Task<ApiKey> CreateApiKeyAsync(ApiKeyForCreation key)
         {

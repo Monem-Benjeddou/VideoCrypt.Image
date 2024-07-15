@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.IdentityModel.Tokens;
 using VideoCrypt.Image.Main.Authentication;
 using VideoCrypt.Image.Main.Middlewares;
+using VideoCrypt.Image.Main.Pages.Components;
 using VideoCrypt.Image.Main.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,6 +31,7 @@ builder.Services.AddHttpClient<AuthenticationService>(client =>
 builder.Services.AddRazorPages();
 builder.Services.AddScoped<CustomCookieAuthenticationEvents>();
 builder.Services.AddScoped<IFileRepository, FileRepository>();
+builder.Services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
 
 builder.Services.AddAuthentication(options =>
 {
