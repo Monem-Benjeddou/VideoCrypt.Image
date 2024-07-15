@@ -16,23 +16,35 @@
         <tbody>
         @if (Model.ApiKeys is not null)
         {
-            var apiKeys = await Model.ApiKeys.Value;
-            if (apiKeys.Items is not null || apiKeys.Items.Any())
-            {
-                @foreach (var apiKey in apiKeys.Items)
-                {
-                    <tr>
-                        <td>@apiKey.Name</td>
-                        <td>@apiKey.Description</td>
-                        <td>@apiKey.Key</td>
-                        <td>@apiKey.CreatedAt.ToString("dd/MM/yyyy")</td>
-                        <td>@apiKey.ExpireAt?.ToString("dd/MM/yyyy HH:mm")</td>
-                        <td>
-                            <button class="btn btn-danger delete-btn" hydro-on:click="@(() => Model.DeleteApiKey(@apiKey.Id))">Delete</button>
-                        </td>
-                    </tr>
-                }
-            }
+        var apiKeys = await Model.ApiKeys.Value;
+        if (apiKeys.Items is not null && apiKeys.Items.Any())
+        {
+        @foreach (var apiKey in apiKeys.Items)
+        {
+        <tr>
+            <td>@apiKey.Name</td>
+            <td>@apiKey.Description</td>
+            <td>@apiKey.Key</td>
+            <td>@apiKey.CreatedAt.ToString("dd/MM/yyyy")</td>
+            <td>@(apiKey.ExpireAt?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td>
+            <td>
+                <button class="btn btn-danger delete-btn" hydro-on:click="@(() => Model.DeleteApiKey(apiKey.Id))">Delete</button>
+            </td>
+        </tr>
+        }
+        }
+        else
+        {
+        <tr>
+            <td colspan="6">No API keys found.</td>
+        </tr>
+        }
+        }
+        else
+        {
+        <tr>
+            <td colspan="6">API keys data is unavailable.</td>
+        </tr>
         }
         </tbody>
     </table>
