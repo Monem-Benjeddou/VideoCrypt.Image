@@ -275,7 +275,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
 
         private async Task<string> GetOrCreateUserBucketAsync(string userId)
         {
-            var userBucket = $"{userId}-imagesbucket";
+            var userBucket = $"{userId}imagesbucket";
             var bucketExists = await AmazonS3Util.DoesS3BucketExistV2Async(_s3Client, userBucket);
 
             if (!bucketExists)

@@ -30,11 +30,11 @@ namespace VideoCrypt.Image.Api.Controllers
         private readonly IImageUploadRepository _imageUploadRepository = imageUploadRepository ?? throw new ArgumentNullException(nameof(imageUploadRepository));
         private readonly string _baseUrl = "https://image.john-group.org";
 
-        private HttpClient CreateAuthorizedClient()
+        private  HttpClient CreateAuthorizedClient()
         {
             var client = _httpClientFactory.CreateClient("AuthorizedClient");
             var userId = GenerateBucketName();
-            client.DefaultRequestHeaders.Add("X-UserId", $"{userId}imagesbucket"); 
+            client.DefaultRequestHeaders.Add("X-UserId", $"{userId}"); 
             return client;
         }
 
