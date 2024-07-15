@@ -1,21 +1,15 @@
-using System;
 using System.Net;
-using System.Net.Http;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Dapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using VideoCrypt.Image.Api.Repositories;
 using VideoCrypt.Image.Data;
 using VideoCrypt.Image.Data.Models;
 
-namespace VideoCrypt.Image.Api.Controllers
+namespace VideoCrypt.Image.Api.Controller
 {
     [Authorize]
     [ApiController]
@@ -197,7 +191,7 @@ namespace VideoCrypt.Image.Api.Controllers
             }
         }
 
-        public async Task<string>  GenerateBucketName()
+        private async Task<string>  GenerateBucketName()
         {
             var user = await _userManager.GetUserAsync(User);
             return user.Id;

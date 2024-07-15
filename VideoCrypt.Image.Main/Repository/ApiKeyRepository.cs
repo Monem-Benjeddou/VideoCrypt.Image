@@ -55,11 +55,15 @@ namespace VideoCrypt.Image.Main.Repository
             {
                 var errorResponse = await response.Content.ReadAsStringAsync();
                 _logger.LogError("Failed to retrieve API keys. Status code: {StatusCode}, Response: {Response}", response.StatusCode, errorResponse);
-                response.EnsureSuccessStatusCode(); // This will still throw an exception with detailed info.
+                response.EnsureSuccessStatusCode(); 
             }
 
             var responseBody = await response.Content.ReadAsStringAsync();
-            var apiKeys = JsonSerializer.Deserialize<PaginatedList<ApiKey>>(responseBody);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+            var apiKeys = JsonSerializer.Deserialize<PaginatedList<ApiKey>>(responseBody,options);
 
             if (apiKeys == null)
             {
