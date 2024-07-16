@@ -51,7 +51,9 @@ if (!Directory.Exists(cachePath))
 {
     Directory.CreateDirectory(cachePath);
 }
-app.UseCors(); 
+
+app.UseCors();
+
 app.UseMiddleware<UserIdValidationMiddleware>();
 
 app.UseStaticFiles(new StaticFileOptions
