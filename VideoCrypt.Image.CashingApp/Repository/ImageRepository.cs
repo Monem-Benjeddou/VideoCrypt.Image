@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Sockets;
+using System.Threading.Tasks;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
+using Amazon.S3.Util;
 using Dapper;
 using Microsoft.Extensions.Logging;
 using VideoCrypt.Image.Data;
@@ -20,21 +21,17 @@ namespace VideoCrypt.Image.CashingApp.Repository
         private readonly string _accessKey;
         private readonly string _secretKey;
         private const string _serverPort = ":9000";
-        private const string _sourceBucket = "imagesbucket";
-
         private readonly ApplicationDbContext _context;
         private readonly AmazonS3Client _s3Client;
         private readonly ILogger<ImageRepository> _logger;
-        const string insertSql = @"INSERT INTO image_metadata (file_name, cached_file_path, url, created_at) VALUES (@FileName, @CachedFilePath, @Url, @CreatedAt)";
-        const string selectByNameSql = @"SELECT * FROM image_metadata WHERE file_name = @FileName";
+        private const string InsertSql = @"INSERT INTO image_metadata (file_name, cached_file_path, url, created_at, user_id) VALUES (@FileName, @CachedFilePath, @Url, @CreatedAt, @UserId)";
+        private const string SelectByNameSql = @"SELECT * FROM image_metadata WHERE file_name = @FileName AND user_id = @UserId";
+
         public ImageRepository(ApplicationDbContext context, ILogger<ImageRepository> logger)
         {
-            _secretKey = Environment.GetEnvironmentVariable("secret_key") ??
-                         throw new Exception("Secret key not found");
-            _accessKey = Environment.GetEnvironmentVariable("access_key") ??
-                         throw new Exception("Access key not found");
-            _serviceUrl = Environment.GetEnvironmentVariable("service_url") ??
-                         throw new Exception("Service url not found");
+            _secretKey = Environment.GetEnvironmentVariable("secret_key") ?? throw new Exception("Secret key not found");
+            _accessKey = Environment.GetEnvironmentVariable("access_key") ?? throw new Exception("Access key not found");
+            _serviceUrl = Environment.GetEnvironmentVariable("service_url") ?? throw new Exception("Service url not found");
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -48,13 +45,13 @@ namespace VideoCrypt.Image.CashingApp.Repository
             _s3Client = new AmazonS3Client(credentials, config);
         }
 
-        public async Task<string> GetSharedFileUrlAsync(string fileName)
+        public async Task<string> GetSharedFileUrlAsync(string fileName, string userId)
         {
-            _logger.LogInformation($"Attempting to retrieve URL for file: {fileName}");
+            _logger.LogInformation($"Attempting to retrieve URL for file: {fileName} for user: {userId}");
 
             using (var connection = _context.CreateConnection())
             {
-                var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(selectByNameSql, new { FileName = fileName });
+                var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(SelectByNameSql, new { FileName = fileName, UserId = userId });
 
                 if (cachedImage != null)
                 {
@@ -65,8 +62,9 @@ namespace VideoCrypt.Image.CashingApp.Repository
 
             try
             {
-                var fileBytes = await DownloadFileAsync(fileName, _sourceBucket);
-                var cacheDirectory = Path.Combine("/app/cache");
+                var userBucket = await GetOrCreateUserBucketAsync(userId);
+                var fileBytes = await DownloadFileAsync(fileName, userBucket);
+                var cacheDirectory = Path.Combine("/app/cache", userId);
 
                 EnsureCacheDirectoryExists(cacheDirectory);
 
@@ -74,19 +72,20 @@ namespace VideoCrypt.Image.CashingApp.Repository
                 await File.WriteAllBytesAsync(cacheFilePath, fileBytes);
                 _logger.LogInformation($"File {fileName} cached at: {cacheFilePath}");
 
-                var url = GenerateCachedFileUrl(fileName);
+                var url = GenerateCachedFileUrl(fileName, userId);
 
                 var newImageMetadata = new ImageMetadata
                 {
                     FileName = fileName,
                     CachedFilePath = cacheFilePath,
                     Url = url,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    UserId = userId
                 };
 
                 using (var dbConnection = _context.CreateConnection())
                 {
-                    await dbConnection.ExecuteAsync(insertSql, newImageMetadata);
+                    await dbConnection.ExecuteAsync(InsertSql, newImageMetadata);
                 }
 
                 _logger.LogInformation($"Metadata for {fileName} saved in database with URL: {url}");
@@ -100,42 +99,16 @@ namespace VideoCrypt.Image.CashingApp.Repository
             }
         }
 
-        private async Task<byte[]> DownloadFileAsync(string fileName, string bucketName)
+        public async Task<PaginatedList<string>> ListImagesAsync(string userId, int page, int pageSize)
         {
             try
             {
-                _logger.LogInformation($"Attempting to download file: {fileName} from bucket: {bucketName}");
+                _logger.LogInformation($"Listing images for user: {userId}, Page: {page}, PageSize: {pageSize}");
 
-                var request = new GetObjectRequest
-                {
-                    BucketName = bucketName,
-                    Key = fileName
-                };
-
-                using (var response = await _s3Client.GetObjectAsync(request))
-                using (var memoryStream = new MemoryStream())
-                {
-                    await response.ResponseStream.CopyToAsync(memoryStream);
-                    _logger.LogInformation($"File: {fileName} downloaded successfully");
-                    return memoryStream.ToArray();
-                }
-            }
-            catch (Exception e)
-            {
-                _logger.LogError($"Error encountered: '{e.Message}' when downloading an object");
-                throw;
-            }
-        }
-
-        public async Task<PaginatedList<string>> ListImagesAsync(int page, int pageSize)
-        {
-            try
-            {
-                _logger.LogInformation($"Listing images, Page: {page}, PageSize: {pageSize}");
-
+                var userBucket = await GetOrCreateUserBucketAsync(userId);
                 var request = new ListObjectsV2Request
                 {
-                    BucketName = _sourceBucket
+                    BucketName = userBucket
                 };
 
                 var response = await _s3Client.ListObjectsV2Async(request);
@@ -150,7 +123,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
                 _logger.LogInformation($"Total files in bucket: {totalCount}");
 
                 List<string> fileList;
-                var cacheDirectory = Path.Combine("/app/cache");
+                var cacheDirectory = Path.Combine("/app/cache", userId);
 
                 EnsureCacheDirectoryExists(cacheDirectory);
 
@@ -168,8 +141,8 @@ namespace VideoCrypt.Image.CashingApp.Repository
                     {
                         _logger.LogInformation($"Processing file: {s3Object.Key}");
 
-                        var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(selectByNameSql,
-                            new { FileName = s3Object.Key });
+                        var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(SelectByNameSql,
+                            new { FileName = s3Object.Key, UserId = userId });
 
                         if (cachedImage != null)
                         {
@@ -183,7 +156,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
                             if (!File.Exists(cacheFilePath))
                             {
                                 _logger.LogInformation($"Downloading and caching file: {s3Object.Key}");
-                                var fileBytes = await DownloadFileAsync(s3Object.Key, _sourceBucket);
+                                var fileBytes = await DownloadFileAsync(s3Object.Key, userBucket);
                                 await File.WriteAllBytesAsync(cacheFilePath, fileBytes);
                             }
                             else
@@ -191,18 +164,18 @@ namespace VideoCrypt.Image.CashingApp.Repository
                                 _logger.LogInformation($"File already cached: {s3Object.Key}");
                             }
 
-                            var url = GenerateCachedFileUrl(s3Object.Key);
+                            var url = GenerateCachedFileUrl(s3Object.Key, userId);
 
                             var newImageMetadata = new ImageMetadata
                             {
                                 FileName = s3Object.Key,
                                 CachedFilePath = cacheFilePath,
                                 Url = url,
-                                CreatedAt = DateTime.UtcNow
+                                CreatedAt = DateTime.UtcNow,
+                                UserId = userId
                             };
 
-
-                            await connection.ExecuteAsync(insertSql, newImageMetadata);
+                            await connection.ExecuteAsync(InsertSql, newImageMetadata);
 
                             imageMetadataList.Add(newImageMetadata);
                         }
@@ -231,17 +204,19 @@ namespace VideoCrypt.Image.CashingApp.Repository
             }
         }
 
-        public async Task<bool> DeleteFileFromBucketAsync(string fileName)
+        public async Task<bool> DeleteFileFromBucketAsync(string fileName, string userId)
         {
             try
             {
-                _logger.LogInformation($"Attempting to delete file: {fileName} from bucket");
+                _logger.LogInformation($"Attempting to delete file: {fileName} for user: {userId} from bucket");
 
+                var userBucket = await GetOrCreateUserBucketAsync(userId);
                 var request = new DeleteObjectRequest
                 {
-                    BucketName = _sourceBucket,
+                    BucketName = userBucket,
                     Key = fileName
                 };
+
                 var response = await _s3Client.DeleteObjectAsync(request);
 
                 if (string.IsNullOrWhiteSpace(response.DeleteMarker)) return true;
@@ -255,19 +230,19 @@ namespace VideoCrypt.Image.CashingApp.Repository
             }
         }
 
-        public async Task<bool> DeleteCachedFileAsync(string fileName)
+        public async Task<bool> DeleteCachedFileAsync(string fileName, string userId)
         {
             try
             {
-                _logger.LogInformation($"Attempting to delete cached file: {fileName}");
+                _logger.LogInformation($"Attempting to delete cached file: {fileName} for user: {userId}");
 
                 using var connection = _context.CreateConnection();
-                var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(selectByNameSql, new { FileName = fileName });
+                var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(SelectByNameSql, new { FileName = fileName, UserId = userId });
 
                 if (cachedImage != null)
                 {
-                    var deleteSql = "DELETE FROM image_metadata WHERE file_name = @FileName";
-                    await connection.ExecuteAsync(deleteSql, new { FileName = fileName });
+                    var deleteSql = "DELETE FROM image_metadata WHERE file_name = @FileName AND user_id = @UserId";
+                    await connection.ExecuteAsync(deleteSql, new { FileName = fileName, UserId = userId });
                 }
 
                 var cacheFilePath = cachedImage?.CachedFilePath;
@@ -284,9 +259,9 @@ namespace VideoCrypt.Image.CashingApp.Repository
             }
         }
 
-        private string GenerateCachedFileUrl(string fileName)
+        private string GenerateCachedFileUrl(string fileName, string userId)
         {
-            var url = $"https://image.john-group.org/cache/{fileName}";
+            var url = $"https://image.john-group.org/cache/{userId}/{fileName}";
             _logger.LogInformation($"Generated URL for cached file: {url}");
             return url;
         }
@@ -296,6 +271,53 @@ namespace VideoCrypt.Image.CashingApp.Repository
             if (Directory.Exists(cacheDirectory)) return;
             _logger.LogInformation($@"Creating cache directory: {cacheDirectory}");
             Directory.CreateDirectory(cacheDirectory);
+        }
+
+        private async Task<string> GetOrCreateUserBucketAsync(string userId)
+        {
+            var userBucket = $"{userId}";
+            var bucketExists = await AmazonS3Util.DoesS3BucketExistV2Async(_s3Client, userBucket);
+
+            if (!bucketExists)
+            {
+                _logger.LogInformation($"Creating bucket for user: {userId}");
+
+                var putBucketRequest = new PutBucketRequest
+                {
+                    BucketName = userBucket
+                };
+
+                await _s3Client.PutBucketAsync(putBucketRequest);
+                _logger.LogInformation($"Bucket {userBucket} created for user: {userId}");
+            }
+
+            return userBucket;
+        }
+        private async Task<byte[]> DownloadFileAsync(string fileName, string bucketName)
+        {
+            try
+            {
+                _logger.LogInformation($"Attempting to download file: {fileName} from bucket: {bucketName}");
+
+                var request = new GetObjectRequest
+                {
+                    BucketName = bucketName,
+                    Key = fileName
+                };
+
+                using (var response = await _s3Client.GetObjectAsync(request))
+                using (var memoryStream = new MemoryStream())
+                {
+                    await response.ResponseStream.CopyToAsync(memoryStream);
+                    _logger.LogInformation($"File: {fileName} downloaded successfully");
+                    return memoryStream.ToArray();
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Error encountered: '{e.Message}' when downloading an object");
+                throw;
+            }
         }
     }
 }

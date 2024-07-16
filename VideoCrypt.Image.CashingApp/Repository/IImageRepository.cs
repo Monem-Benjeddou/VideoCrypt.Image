@@ -4,9 +4,9 @@ namespace VideoCrypt.Image.CashingApp.Repository
 {
     public interface IImageRepository
     {
-        Task<string> GetSharedFileUrlAsync(string fileName);
-        Task<PaginatedList<string>> ListImagesAsync(int page, int pageSize);
-        Task<bool> DeleteFileFromBucketAsync(string fileName);
-        Task<bool> DeleteCachedFileAsync(string fileName);
+        Task<string> GetSharedFileUrlAsync(string fileName, string userId);
+        Task<PaginatedList<string>> ListImagesAsync(string userId, int page, int pageSize);
+        Task<bool> DeleteFileFromBucketAsync(string fileName, string userId);
+        Task<bool> DeleteCachedFileAsync(string fileName, string userId);
     }
 }

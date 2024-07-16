@@ -25,8 +25,8 @@ namespace VideoCrypt.Image.Api.Controller
         private readonly UserManager<IdentityUser> _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
         private readonly ILogger<ApiKeyController> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<ApiKey>>> GetApiKeys()
+        [HttpGet("all")]
+        public async Task<ActionResult<IEnumerable<ApiKey>>> GetAllApiKeys()
         {
             try
             {
@@ -110,8 +110,9 @@ namespace VideoCrypt.Image.Api.Controller
                     return NotFound();
                 }
 
+                apiKey.UserId = user.Id;
                 await _apiKeyRepository.DeleteApiKeyAsync(apiKey);
-                return NoContent();
+                return Ok();
             }
             catch (Exception ex)
             {

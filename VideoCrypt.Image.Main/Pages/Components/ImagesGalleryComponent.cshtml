@@ -2,7 +2,7 @@
 <div class="container mt-5">
     <h2 class="text-center mb-4">Image Gallery</h2>
     <div class="row">
-        @if (Model.Images.Value != null || Model.Images is not null )
+        @if (Model.Images.Value != null || Model.Images is not null)
         {
             var images = await Model.Images.Value;
             if (images.Items is not null)
@@ -25,7 +25,6 @@
                     <p class="text-center">No images found.</p>
                 </div>
             }
-
         }
         else
         {
@@ -41,7 +40,7 @@
                 @for (int i = 1; i <= Model.TotalPages; i++)
                 {
                     <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
-                        <button class="page-link" hydro-on:click="@( () => Model.PageChangedAsync(i))">@i</button>
+                        <button class="page-link" hydro-on:click="@(() => Model.PageChangedAsync(i))">@i</button>
                     </li>
                 }
             </ul>
