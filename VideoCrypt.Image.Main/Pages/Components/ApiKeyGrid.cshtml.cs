@@ -1,14 +1,16 @@
 using Hydro;
 using VideoCrypt.Image.Main.Models;
 using VideoCrypt.Image.Main.Repository;
+using System.Threading.Tasks;
+using Hydro.Configuration;
+
 namespace VideoCrypt.Image.Main.Pages.Components
 {
-    public class ApiKeyGenerator : HydroComponent
+    public class ApiKeyGrid : HydroComponent
     {
         private readonly IApiKeyRepository _apiKeyRepository;
         private Task<PaginatedList<ApiKey>> _apiKeysCache;
-
-        public ApiKeyGenerator(IApiKeyRepository apiKeyRepository)
+        public ApiKeyGrid(IApiKeyRepository apiKeyRepository)
         {
             _apiKeyRepository = apiKeyRepository ?? throw new ArgumentNullException(nameof(apiKeyRepository));
         }
@@ -49,6 +51,14 @@ namespace VideoCrypt.Image.Main.Pages.Components
 
             CurrentPage = page;
             await LoadApiKeys();
+        }
+
+        public async Task AddApiKey(ApiKeyForCreation apiKey)
+        {
+            await _apiKeyRepository.CreateApiKeyAsync(apiKey);
+            _apiKeysCache = null;
+            await LoadApiKeys();
+            Render();
         }
     }
 }

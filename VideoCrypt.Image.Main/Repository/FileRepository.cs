@@ -40,7 +40,8 @@ namespace VideoCrypt.Image.Main.Repository
             var response = await _httpClient.PostAsync($"{_apiBaseUrl}/api/Image/upload", content);
             if (IsUnAuthorized(response))
             {
-                throw new Exception("Unauthorized user please try logging out then logging int");
+                Logout();
+                throw new UnauthorizedAccessException("Unauthorized user please try logging out then logging int");
             }
             response.EnsureSuccessStatusCode();
             _logger.LogInformation("File {FileName} uploaded successfully", file.FileName);
@@ -55,7 +56,8 @@ namespace VideoCrypt.Image.Main.Repository
             var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/api/Image/{uriFileName}");
             if (IsUnAuthorized(response))
             {
-                throw new Exception("Unauthorized user please try logging out then logging int");
+                Logout();
+                throw new UnauthorizedAccessException("Unauthorized user please try logging out then logging int");
             }
             response.EnsureSuccessStatusCode();
             _logger.LogInformation("File {FileName} deleted successfully", fileName);
@@ -72,7 +74,8 @@ namespace VideoCrypt.Image.Main.Repository
                 var response = await _httpClient.GetAsync(new Uri($"{_apiBaseUrl}/api/Image/image/{uriFileName}"));
                 if (IsUnAuthorized(response))
                 {
-                    throw new Exception("Unauthorized user please try logging out then logging int");
+                    Logout();
+                    throw new UnauthorizedAccessException("Unauthorized user please try logging out then logging int");
                 }
                 if (response.IsSuccessStatusCode)
                 {
@@ -100,7 +103,8 @@ namespace VideoCrypt.Image.Main.Repository
                 var response = await _httpClient.GetAsync(new Uri($"{_apiBaseUrl}/api/Image/list?page={page}&pageSize={pageSize}"));
                 if (IsUnAuthorized(response))
                 {
-                    throw new Exception("Unauthorized user please try logging out then logging int");
+                    Logout();
+                    throw new UnauthorizedAccessException("Unauthorized user please try logging out then logging int");
                 }
                 var options = new JsonSerializerOptions
                 {
@@ -127,7 +131,8 @@ namespace VideoCrypt.Image.Main.Repository
             var response = await _httpClient.GetAsync($"{_apiBaseUrl}/api/Image/image/{fileName}");        
             if (IsUnAuthorized(response))
             {
-                throw new Exception("Unauthorized user please try logging out then logging int");
+                Logout();
+                throw new UnauthorizedAccessException("Unauthorized user please try logging out then logging int");
             }
             response.EnsureSuccessStatusCode();
 
@@ -157,7 +162,15 @@ namespace VideoCrypt.Image.Main.Repository
             _logger.LogInformation("Retrieved Access Token: {AccessToken}", accessToken);
             return accessToken;
         }
+        private void Logout()
+        {
+            // Perform logout actions here, such as clearing tokens or cookies
+            _httpContextAccessor.HttpContext.Response.Cookies.Delete("access_token");
+            _httpContextAccessor.HttpContext.Response.Cookies.Delete("auth");
+            _httpContextAccessor.HttpContext.Response.Cookies.Delete("BearerToken");
 
+            // Optionally handle other logout tasks based on your application's requirements
+        }
         private bool IsUnAuthorized(HttpResponseMessage responseMessage) =>
             responseMessage.StatusCode == HttpStatusCode.Unauthorized;
     }

@@ -109,9 +109,9 @@ namespace VideoCrypt.Image.Api.Controller
                     _logger.LogWarning("API key with id {Id} not found for user {UserId}", id, user.Id);
                     return NotFound();
                 }
-
+                
                 await _apiKeyRepository.DeleteApiKeyAsync(apiKey);
-                return NoContent();
+                return Ok();
             }
             catch (Exception ex)
             {

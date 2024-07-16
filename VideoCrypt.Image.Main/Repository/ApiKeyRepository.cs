@@ -28,7 +28,7 @@ namespace VideoCrypt.Image.Main.Repository
             var response = await _httpClient.GetAsync($"{_apiBaseUrl}/api/ApiKey/{id}");
             if (IsUnAuthorized(response))
             {
-                throw new Exception("Unauthorized user. Please try logging out then logging in.");
+                throw new UnauthorizedAccessException("Unauthorized user. Please try logging out then logging in.");
             }
             response.EnsureSuccessStatusCode();
 
@@ -48,7 +48,7 @@ namespace VideoCrypt.Image.Main.Repository
 
             if (IsUnAuthorized(response))
             {
-                throw new Exception("Unauthorized user. Please try logging out then logging in.");
+                throw new UnauthorizedAccessException("Unauthorized user. Please try logging out then logging in.");
             }
 
             if (!response.IsSuccessStatusCode)
@@ -92,7 +92,7 @@ namespace VideoCrypt.Image.Main.Repository
             var response = await _httpClient.PostAsync($"{_apiBaseUrl}/api/ApiKey", jsonContent);
             if (IsUnAuthorized(response))
             {
-                throw new Exception("Unauthorized user. Please try logging out then logging in.");
+                throw new UnauthorizedAccessException("Unauthorized user. Please try logging out then logging in.");
             }
             response.EnsureSuccessStatusCode();
 
@@ -111,7 +111,7 @@ namespace VideoCrypt.Image.Main.Repository
             var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/api/ApiKey/{id}");
             if (IsUnAuthorized(response))
             {
-                throw new Exception("Unauthorized user. Please try logging out then logging in.");
+                throw new UnauthorizedAccessException("Unauthorized user. Please try logging out then logging in.");
             }
             response.EnsureSuccessStatusCode();
 
