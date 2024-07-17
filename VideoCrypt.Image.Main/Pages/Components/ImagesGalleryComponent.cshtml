@@ -78,4 +78,74 @@
             </div>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let imageModal = document.getElementById('imageModal');
+            if (!imageModal) {
+                console.error("Element with ID 'imageModal' not found.");
+                return;
+            }
+            imageModal.addEventListener('show.bs.modal', function(event) {
+                let button = event.relatedTarget;
+                let imageSrc = button.getAttribute('data-bs-src');
+                let modalImage = imageModal.querySelector('#modalImage');
+                modalImage.src = imageSrc;
+                let imageResolution = imageModal.querySelector('#imageResolution');
+                getMeta(imageSrc).then(img => {
+                    let resolution = `${img.naturalWidth}x${img.naturalHeight}`;
+                    imageResolution.textContent = 'Resolution: ' + resolution;
+                }).catch(err => {
+                    imageResolution.textContent = 'Resolution: Unknown';
+                });
+                let imageExtension = imageModal.querySelector('#imageExtension');
+                let extension = extractExtensionFromUrl(imageSrc);
+                imageExtension.textContent = 'Extension: ' + (extension || 'Unknown');
+                let downloadLink = imageModal.querySelector('#downloadLink');
+                downloadLink.href = imageSrc;
+                downloadLink.download = imageSrc.substring(imageSrc.lastIndexOf('/') + 1);
+                downloadLink.onclick = function(e) {
+                    e.preventDefault();
+                    downloadImage(imageSrc);
+                };
+            });
+
+            function downloadImage(imageUrl) {
+                const apiUrl = `/ImageController/download?url=${encodeURIComponent(imageUrl)}`;
+
+                fetch(apiUrl)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to download image.');
+                        }
+                        return response.blob();
+                    })
+                    .then(blob => {
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.href = url;
+                        a.download = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+                    })
+                    .catch(error => alert(error.message));
+            }
+
+
+
+            function extractExtensionFromUrl(url) {
+                return url.split('.').pop().split('?')[0];
+            }
+
+            const getMeta = (url) =>
+                new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = () => resolve(img);
+                    img.onerror = (err) => reject(err);
+                    img.src = url;
+                });
+        });
+    </script>
 </div>
