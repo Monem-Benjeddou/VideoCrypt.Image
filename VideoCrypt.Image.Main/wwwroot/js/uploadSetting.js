@@ -75,7 +75,6 @@ function showGenerateLinkButton() {
                 console.error('Error generating share link:', error);
             });
     });
-
     var fileDetails = document.getElementById('fileDetails');
     fileDetails.appendChild(generateLinkButton);
 }
