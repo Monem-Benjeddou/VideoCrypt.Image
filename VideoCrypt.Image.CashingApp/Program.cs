@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using VideoCrypt.Image.Data;
 using VideoCrypt.Image.CashingApp.Repository;
-using VideoCrypt.Image.Data.Models;
 using VideoCrypt.Image.Server.Authorization;
 using VideoCrypt.Image.Server.Dapper;
 using VideoCrypt.Image.Server.Middlewares;
@@ -51,7 +50,19 @@ if (!Directory.Exists(cachePath))
 {
     Directory.CreateDirectory(cachePath);
 }
-app.UseCors(); 
+app.Use(async (context, next) =>
+{
+    await next.Invoke();
+
+    if (context.Request.Path.StartsWithSegments("/cache"))
+    {
+        context.Response.Headers.Add("Access-Control-Allow-Origin", "https://dashboard.john-group.org");
+        context.Response.Headers.Add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+        context.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    }
+});
+app.UseCors();
+
 app.UseMiddleware<UserIdValidationMiddleware>();
 
 app.UseStaticFiles(new StaticFileOptions
