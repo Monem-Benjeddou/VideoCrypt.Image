@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function downloadImage(imageUrl) {
-        const apiUrl = `/api/ImageController/download?url=${encodeURIComponent(imageUrl)}`;
+        const apiUrl = `/ImageController/download?url=${encodeURIComponent(imageUrl)}`;
 
         fetch(apiUrl)
             .then(response => {
