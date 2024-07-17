@@ -110,7 +110,7 @@
             });
 
             function downloadImage(imageUrl) {
-                const apiUrl = `/ImageController/download?url=${encodeURIComponent(imageUrl)}`;
+                const apiUrl = `/Image/download?url=${encodeURIComponent(imageUrl)}`;
 
                 fetch(apiUrl)
                     .then(response => {
