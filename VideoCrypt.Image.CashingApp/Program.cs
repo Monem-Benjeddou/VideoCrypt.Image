@@ -13,7 +13,7 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policyBuilder =>
     {
-        policyBuilder.WithOrigins("dashboard.john-group.org")
+        policyBuilder.WithOrigins("https://dashboard.john-group.org")
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -50,17 +50,8 @@ if (!Directory.Exists(cachePath))
 {
     Directory.CreateDirectory(cachePath);
 }
-app.Use(async (context, next) =>
-{
-    await next.Invoke();
+app.UseRouting();
 
-    if (context.Request.Path.StartsWithSegments("/cache"))
-    {
-        context.Response.Headers.Add("Access-Control-Allow-Origin", "https://dashboard.john-group.org");
-        context.Response.Headers.Add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-        context.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    }
-});
 app.UseCors();
 
 app.UseMiddleware<UserIdValidationMiddleware>();

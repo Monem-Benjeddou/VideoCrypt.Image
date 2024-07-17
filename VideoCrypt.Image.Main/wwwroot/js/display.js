@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let resolution = `${img.naturalWidth}x${img.naturalHeight}`;
             imageResolution.textContent = 'Resolution: ' + (resolution || 'Unknown');
         }).catch(err => {
+            console.error('Error fetching image meta:', err);
             imageResolution.textContent = 'Resolution: Unknown';
         });
 
@@ -36,7 +37,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function downloadImage(imageUrl) {
         fetch(imageUrl)
-            .then(response => response.blob())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.blob();
+            })
             .then(blob => {
                 var url = window.URL.createObjectURL(blob);
                 var a = document.createElement('a');
@@ -47,14 +53,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 a.click();
                 window.URL.revokeObjectURL(url);
             })
-            .catch(() => alert('Failed to download image.'));
-    }
-
-    function extractResolutionFromUrl(url) {
-        // Example: http://example.com/image_1920x1080.jpg
-        let regex = /_(\d+x\d+)\./;
-        let match = url.match(regex);
-        return match ? match[1] : null;
+            .catch(error => {
+                console.error('Failed to download image:', error);
+                alert('Failed to download image. Please check if the image URL is correct and the server allows cross-origin requests.');
+            });
     }
 
     function extractExtensionFromUrl(url) {
@@ -69,25 +71,25 @@ document.addEventListener('DOMContentLoaded', function() {
             img.src = url;
         });
 
-
 });
-function  deleteImage (imageUrl) {
+
+function deleteImage(imageUrl) {
     if (confirm('Are you sure you want to delete this image?')) {
         $.ajax({
             url: '/Image/deleteImage',
             type: 'POST',
             data: { imageUrl: imageUrl },
-            success: function (result) {
+            success: function(result) {
                 if (result.success) {
                     $('#deleteSuccessModal').modal('show');
-                    setTimeout(function () {
+                    setTimeout(function() {
                         location.reload(); // Reload the component instead of the whole page
                     }, 2000);
                 } else {
                     alert('Failed to delete image: ' + result.message);
                 }
             },
-            error: function (xhr, status, error) {
+            error: function(xhr, status, error) {
                 console.error("Error: " + status + " " + error);
                 alert('Failed to delete image due to server error.');
             }
