@@ -50,7 +50,6 @@ if (!Directory.Exists(cachePath))
 {
     Directory.CreateDirectory(cachePath);
 }
-app.UseRouting();
 
 app.UseCors();
 
