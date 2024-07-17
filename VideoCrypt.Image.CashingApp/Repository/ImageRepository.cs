@@ -258,7 +258,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
                 throw;
             }
         }
-
+        
         private string GenerateCachedFileUrl(string fileName, string userId)
         {
             var url = $"https://image.john-group.org/cache/{userId}/{fileName}";

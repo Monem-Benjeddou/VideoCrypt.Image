@@ -29,13 +29,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function downloadImage(imageUrl) {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', imageUrl, true);
-        xhr.responseType = 'blob';
+        const apiUrl = `/api/ImageController/download?url=${encodeURIComponent(imageUrl)}`;
 
-        xhr.onload = function () {
-            if (xhr.status === 200) {
-                const blob = xhr.response;
+        fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to download image.');
+                }
+                return response.blob();
+            })
+            .then(blob => {
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.style.display = 'none';
@@ -45,17 +48,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 a.click();
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
-            } else {
-                alert('Failed to download image.');
-            }
-        };
-
-        xhr.onerror = function () {
-            alert('Failed to download image.');
-        };
-
-        xhr.send();
+            })
+            .catch(error => alert(error.message));
     }
+
 
 
     function extractExtensionFromUrl(url) {

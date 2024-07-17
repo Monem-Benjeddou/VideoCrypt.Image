@@ -10,14 +10,9 @@ namespace VideoCrypt.Image.CashingApp.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class ImageController : ControllerBase
+    public class ImageController(IImageRepository imageRepository) : ControllerBase
     {
-        private readonly IImageRepository _imageRepository;
-
-        public ImageController(IImageRepository imageRepository)
-        {
-            _imageRepository = imageRepository ?? throw new ArgumentNullException(nameof(imageRepository));
-        }
+        private readonly IImageRepository _imageRepository = imageRepository ?? throw new ArgumentNullException(nameof(imageRepository));
 
         [HttpGet("{fileName}")]
         public async Task<IActionResult> GetImageUrl(string fileName)
@@ -70,7 +65,6 @@ namespace VideoCrypt.Image.CashingApp.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-
         private string GetUserId()
         {
             if (!Request.Headers.TryGetValue("X-UserId", out var userIdHeader))
