@@ -21,9 +21,29 @@ document.addEventListener('DOMContentLoaded', function() {
         imageExtension.textContent = 'Extension: ' + (extension || 'Unknown');
         let downloadLink = imageModal.querySelector('#downloadLink');
         downloadLink.href = imageSrc;
-        downloadLink.target = '_blank';
         downloadLink.download = imageSrc.substring(imageSrc.lastIndexOf('/') + 1);
+        downloadLink.onclick = function(e) {
+            e.preventDefault();
+            downloadImage(imageSrc);
+        };
     });
+
+    function downloadImage(imageUrl) {
+        fetch(imageUrl)
+            .then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            })
+            .catch(() => alert('Failed to download image.'));
+    }
 
     function extractExtensionFromUrl(url) {
         return url.split('.').pop().split('?')[0];
@@ -48,7 +68,7 @@ function deleteImage(imageUrl) {
                 if (result.success) {
                     $('#deleteSuccessModal').modal('show');
                     setTimeout(function() {
-                        location.reload(); // Reload the component instead of the whole page
+                        location.reload();
                     }, 2000);
                 } else {
                     alert('Failed to delete image: ' + result.message);
