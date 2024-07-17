@@ -13,6 +13,7 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policyBuilder =>
     {
         policyBuilder.WithOrigins("https://dashboard.john-group.org")
+            .WithOrigins("http://51.38.80.38:8080")
             .WithOrigins("https://localhost:8080")
             .AllowAnyHeader()
             .AllowAnyMethod();

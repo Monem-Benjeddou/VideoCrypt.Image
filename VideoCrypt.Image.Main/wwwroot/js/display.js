@@ -29,9 +29,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function downloadImage(imageUrl) {
-        fetch(imageUrl)
-            .then(response => response.blob())
-            .then(blob => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', imageUrl, true);
+        xhr.responseType = 'blob';
+
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                const blob = xhr.response;
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.style.display = 'none';
@@ -41,9 +45,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 a.click();
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
-            })
-            .catch(() => alert('Failed to download image.'));
+            } else {
+                alert('Failed to download image.');
+            }
+        };
+
+        xhr.onerror = function () {
+            alert('Failed to download image.');
+        };
+
+        xhr.send();
     }
+
 
     function extractExtensionFromUrl(url) {
         return url.split('.').pop().split('?')[0];
