@@ -1,12 +1,63 @@
-<div class="container d-flex flex-column justify-content-center">
-    <h1>Upload Files</h1>
-    <form id="my-great-dropzone" class="dropzone align-self-center" style="height: 45em; width: 50em;"
-          action="/UploadFile/Upload" method="post" enctype="multipart/form-data">
-        <div class="fallback">
-            <input type="file" name="file"/>
-            <input type="submit" value="Upload!">
+<div>
+    <div class="container d-flex flex-column justify-content-center">
+        <h1>Upload Files</h1>
+        <form id="my-great-dropzone" class="dropzone align-self-center" style="height: 45em; width: 50em;"
+              action="/UploadFile/Upload" method="post" enctype="multipart/form-data">
+            <div class="fallback">
+                <input type="file" name="file"/>
+                <input type="submit" value="Upload!">
+            </div>
+        </form>
+        <div id="fileDetails" class="mt-4"></div>
+        <div id="shareLink" class="mt-4"></div>
+        <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="errorModalMessage">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
         </div>
-    </form>
-    <div id="fileDetails"></div>
-    <div id="shareLink" style="margin-top: 20px;"></div>
+    </div>
+
+    <style>
+        .dz-preview .dz-image {
+            border-radius: 20px;
+            overflow: hidden;
+            width: 15rem;
+            height: 15rem;
+            position: relative;
+            display: block;
+            z-index: 10;
+        }
+
+        #fileDetails {
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .file-detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .share-link-input {
+            width: 100%;
+            padding: 5px;
+            margin-top: 10px;
+        }
+
+        .btn-copy {
+            margin-top: 10px;
+        }
+    </style>
 </div>

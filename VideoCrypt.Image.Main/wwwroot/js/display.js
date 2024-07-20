@@ -52,8 +52,6 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => alert(error.message));
     }
 
-
-
     function extractExtensionFromUrl(url) {
         return url.split('.').pop().split('?')[0];
     }

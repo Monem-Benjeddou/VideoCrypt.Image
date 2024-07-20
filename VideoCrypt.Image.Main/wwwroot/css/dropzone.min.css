@@ -240,9 +240,6 @@
     border-style: solid
 }
 
-.dropzone.dz-drag-hover .dz-message {
-    opacity: .5
-}
 
 .dropzone .dz-message {
     text-align: center;
@@ -380,8 +377,8 @@
 .dropzone .dz-preview .dz-image {
     border-radius: 20px;
     overflow: hidden;
-    width: 15em;
-    height: 15em;
+    width: 15rem;
+    height: 15rem;
     position: relative;
     display: block;
     z-index: 10;
@@ -548,24 +545,47 @@
 .share-link-button:hover {
     background-color: #1565c0;
 }
-.gallery-image {
-    width: 100%;
-    height: 200px; /* Set a fixed height for the images */
-    object-fit: cover; /* Ensure images cover the area without distorting */
-    transition: transform 0.2s ease-in-out;
+
+.mat-mdc-form-field {
+    margin: 16px 0;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
-.gallery-image:hover {
-    transform: scale(1.05);
-    cursor: pointer;
+
+.mat-mdc-text-field-wrapper {
+    padding: 8px 16px;
+    display: flex;
+    flex-direction: column;
 }
-.card {
-    border: none;
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+
+.mdc-notched-outline {
+    border: 1px solid #ccc;
+    border-radius: 4px;
 }
-.card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+
+.mdc-floating-label {
+    color: #6200ee;
+    font-weight: 500;
+    font-size: 16px;
 }
-.card-body {
-    padding: 10px;
+
+#imageDetails p {
+    margin: 0;
+    font-size: 14px;
+    color: #333;
+}
+
+#downloadLink {
+    margin-top: 8px;
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: #6200ee;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+#downloadLink:hover {
+    background-color: #3700b3;
 }

@@ -18,7 +18,7 @@
   margin-right: auto;
 }
 
-@media (min-width: 576px) {
+@media (min-width: 700px) {
   .container-sm, .container {
     max-width: 540px;
   }
@@ -270,7 +270,7 @@
   --bs-gutter-y: 3rem;
 }
 
-@media (min-width: 576px) {
+@media (min-width: 700px) {
   .col-sm {
     flex: 1 0 0%;
   }
@@ -1937,7 +1937,7 @@
   padding-right: 3rem !important;
 }
 
-@media (min-width: 576px) {
+@media (min-width: 700px) {
   .d-sm-inline {
     display: inline !important;
   }

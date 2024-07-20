@@ -2,9 +2,11 @@ Dropzone.options.myGreatDropzone = {
     addRemoveLinks: true,
     paramName: "file",
     maxFiles: 1,
-    acceptedFiles: "image/jpeg,image/png,image/gif,image/bmp,image/tiff,image/svg+xml", 
+    acceptedFiles: "image/jpeg,image/png,image/gif,image/bmp,image/tiff,image/svg+xml",
     init: function () {
         var myDropzone = this;
+
+        // Fetch existing files
         $.getJSON('./?handler=ListFolderContents').done(function (data) {
             if (data !== null && data.length > 0) {
                 $.each(data, function (index, item) {
@@ -16,35 +18,43 @@ Dropzone.options.myGreatDropzone = {
                     myDropzone.emit("addedfile", mockFile);
                     myDropzone.emit("thumbnail", mockFile, item.filePath);
                     myDropzone.emit("complete", mockFile);
-                    displayFileDetails(mockFile, myDropzone);
-                    showGenerateLinkButton();
+                    displayFileDetails(mockFile);
+                    generateShareLink(mockFile.name);
                 });
             }
         });
 
+        // Handle added file
         myDropzone.on("addedfile", function (file) {
             if (myDropzone.files[1] != null) {
                 myDropzone.removeFile(myDropzone.files[0]);
             }
         });
 
+        // Handle success
         myDropzone.on("success", function (file, response) {
-            displayFileDetails(file, myDropzone);
-            showGenerateLinkButton();
+            displayFileDetails(file);
+            generateShareLink(file.name);
         });
 
-        myDropzone.on("removedfile", function (file) {
+        // Handle removed file
+        myDropzone.on("removedfile", function () {
             document.getElementById('fileDetails').innerHTML = '';
             document.getElementById('shareLink').innerHTML = '';
         });
     }
 };
 
-function displayFileDetails(file, dropzoneInstance) {
+function displayFileDetails(file) {
     var fileDetails = document.getElementById('fileDetails');
-    fileDetails.innerHTML = '<h3>File Details</h3>' +
-        '<p><strong>Name:</strong> <span id="fileName">' + file.name + '</span></p>' +
-        '<p><strong>Size:</strong> ' + formatFileSize(file.size) + '</p>' ;
+    fileDetails.innerHTML = `
+        <div class="file-detail-item">
+            <strong>Name:</strong> <span>${file.name}</span>
+        </div>
+        <div class="file-detail-item">
+            <strong>Size:</strong> <span>${formatFileSize(file.size)}</span>
+        </div>
+    `;
 }
 
 function formatFileSize(bytes) {
@@ -55,26 +65,27 @@ function formatFileSize(bytes) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-function showGenerateLinkButton() {
-    var fileNameElement = document.querySelector('#fileName');
-    if (!fileNameElement) return;
+function generateShareLink(fileName) {
+    fetch(`/Image/GenerateShareLink/${encodeURIComponent(fileName)}`)
+        .then(response => response.json())
+        .then(data => {
+            var shareLinkDiv = document.getElementById('shareLink');
+            shareLinkDiv.innerHTML = `
+                <input type="text" class="share-link-input" value="${data.url}" readonly />
+                <button class="btn btn-secondary btn-copy" onclick="copyToClipboard('${data.url}')">Copy Link</button>
+            `;
+        })
+        .catch(error => {
+            console.error('Error generating share link:', error);
+        });
+}
 
-    var generateLinkButton = document.createElement('button');
-    generateLinkButton.id = 'generateLinkButton';
-    generateLinkButton.className = 'btn btn-primary';
-    generateLinkButton.innerText = 'Generate Share Link';
-    generateLinkButton.addEventListener('click', function () {
-        var fileName = fileNameElement.innerText;
-        fetch(`/Image/GenerateShareLink/${encodeURIComponent(fileName)}`)
-            .then(response => response.json())
-            .then(data => {
-                var shareLinkDiv = document.getElementById('shareLink');
-                shareLinkDiv.innerHTML = '<button class="share-link-button btn btn-success" onclick="window.open(\'' + data.url + '\', \'_blank\')">Open Share Link</button>';
-            })
-            .catch(error => {
-                console.error('Error generating share link:', error);
-            });
-    });
-    var fileDetails = document.getElementById('fileDetails');
-    fileDetails.appendChild(generateLinkButton);
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text)
+        .then(() => {
+            alert('Link copied to clipboard!');
+        })
+        .catch(err => {
+            console.error('Failed to copy text: ', err);
+        });
 }
