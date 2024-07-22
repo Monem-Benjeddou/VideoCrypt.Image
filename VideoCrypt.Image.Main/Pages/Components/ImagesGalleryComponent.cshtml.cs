@@ -27,7 +27,7 @@ public class ImagesGalleryComponent(IFileRepository fileRepository) : HydroCompo
         var images = await _cachedImages;
         TotalPages = images.TotalPages;
         CurrentPage = 1;
-        Render();
+        await RenderAsync();
         return images != null && images.Items.Any() ? images : new PaginatedList<string>();
     });
 

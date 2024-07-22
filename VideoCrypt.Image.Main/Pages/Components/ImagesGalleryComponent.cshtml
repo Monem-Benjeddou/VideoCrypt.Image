@@ -13,7 +13,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        object-fit: cover; /* Ensures the image covers the container while maintaining aspect ratio */
+        object-fit: cover; 
     }
     .tm-video-item {
         height: 100%; /* Ensures the figure takes the full height of its container */
@@ -90,7 +90,7 @@
             </div>
             }
         </div>
-        <div class="row tm-mb-90">
+        <div class="row ">
             <div class="col-12 d-flex justify-content-between align-items-center tm-paging-col">
                 @{
                     var previous = Model.CurrentPage - 1;
@@ -127,7 +127,7 @@
                     </div>
                     <div class="modal-footer">
                         <a id="downloadLink" href="" class="btn btn-primary" download>Download</a>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-delete" data-bs-dismiss="modal">Close</button>
                     </div>
                 </div>
             </div>
@@ -137,7 +137,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="deleteSuccessModalLabel">Image Deleted</h5>
-                        <button type="button" class="btn btn-delete" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn btn-delete" data-bs-dismiss="modal" >Close</button>
                     </div>
                     <div class="modal-body">
                         <p>The image has been successfully deleted.</p>
