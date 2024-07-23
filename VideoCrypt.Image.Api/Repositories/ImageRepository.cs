@@ -189,16 +189,24 @@ public async Task<ImageResponse> UploadFileAsync(IFormFile formFile, string user
 
         public async Task<PaginatedList<string>> ListImagesAsync(int page, int pageSize, ClaimsPrincipal user)
         {
-            using var client = await CreateAuthorizedClient(user);
-            var response = await client.GetAsync($"{_baseUrl}/api/Image/list?page={page}&pageSize={pageSize}");
-            var options = new JsonSerializerOptions
+            try
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            };
+                using var client = await CreateAuthorizedClient(user);
+                var response = await client.GetAsync($"{_baseUrl}/api/Image/list?page={page}&pageSize={pageSize}");
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                };
 
-            var responseBody = await response.Content.ReadAsStringAsync();
-            var files = JsonSerializer.Deserialize<PaginatedList<string>>(responseBody, options);
-            return files;
+                var responseBody = await response.Content.ReadAsStringAsync();
+                var files = JsonSerializer.Deserialize<PaginatedList<string>>(responseBody, options);
+                return files;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while listing images.");
+                throw;
+            }
         }
 
         public async Task<string> ResizeImageAsync(string fileName, int width, int height, ImageModificationType type,
