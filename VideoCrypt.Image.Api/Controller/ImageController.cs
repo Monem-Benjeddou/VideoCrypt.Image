@@ -110,7 +110,7 @@ namespace VideoCrypt.Image.Api.Controller
             }
         }
 
-        [HttpGet("getResized/{fileName}")]
+        [HttpGet("getResized")]
         public async Task<IActionResult> GetResizedImage([FromQuery] string fileName, [FromQuery] int width,
             [FromQuery] int height, [FromQuery] ImageModificationType type)
         {

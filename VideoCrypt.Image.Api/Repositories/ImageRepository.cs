@@ -212,9 +212,15 @@ namespace VideoCrypt.Image.Api.Repositories
         public async Task<string> ResizeImageAsync(string fileName, int width, int height, ImageModificationType type,
             ClaimsPrincipal user)
         {
+            var modifiedName = "";
+            if (height != 0 && width != 0)
+                modifiedName = GenerateModifiedFileName(fileName, width, height, type);
+            var searchedName = string.IsNullOrEmpty(modifiedName) ? fileName : modifiedName; 
+
             using var connection = _context.CreateConnection();
+            
             var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(
-                "SELECT * FROM image_metadata WHERE file_name = @FileName", new { FileName = fileName });
+                "SELECT * FROM image_metadata WHERE file_name = @FileName", new { FileName = searchedName });
 
             if (cachedImage != null)
                 return cachedImage.Url;
@@ -302,7 +308,14 @@ namespace VideoCrypt.Image.Api.Repositories
             client.DefaultRequestHeaders.Add("X-UserId", $"{userId}");
             return client;
         }
+        private string GenerateModifiedFileName(string originalFileName, int width, int height, ImageModificationType type)
+        {
+            var fileExtension = Path.GetExtension(originalFileName);
+            var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(originalFileName);
+            var typeString = type.ToString().ToLower();
 
+            return $"{fileNameWithoutExtension}_{typeString}_w{width}_h{height}{fileExtension}";
+        }
         private async Task<string> GenerateBucketName(ClaimsPrincipal userClaims)
         {
             var user = await _userManager.GetUserAsync(userClaims);
