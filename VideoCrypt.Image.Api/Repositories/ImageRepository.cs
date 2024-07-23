@@ -1,16 +1,37 @@
 using System.Net;
 using Amazon.Runtime;
 using Amazon.S3;
-using Amazon.S3.Model;using System.Diagnostics;
-using Humanizer;
+using Amazon.S3.Model;
+using System.Diagnostics;
+using System.Globalization;
+using System.Security.Claims;
+using System.Text.Json;
+using Dapper;
+using Microsoft.AspNetCore.Identity;
 using VideoCrypt.Image.Data.Models;
+using VideoCrypt.Image.Data;
 
 namespace VideoCrypt.Image.Api.Repositories
 {
-    public class ImageRepository(ILogger<ImageRepository> logger) : IImageRepository
+    public class ImageRepository(
+        ILogger<ImageRepository> logger,
+        IHttpClientFactory httpClientFactory,
+        UserManager<IdentityUser> userManager,
+        ApplicationDbContext context) : IImageRepository
     {
+        private readonly IHttpClientFactory _httpClientFactory =
+            httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
+
+        private readonly UserManager<IdentityUser> _userManager =
+            userManager ?? throw new ArgumentNullException(nameof(userManager));
+
+        private readonly ApplicationDbContext _context =
+            context ?? throw new ArgumentNullException(nameof(context));
+
         private readonly string _serviceUrl = Environment.GetEnvironmentVariable("service_url") ??
                                               throw new Exception("Service url key not found");
+
+        private readonly string _baseUrl = "https://image.john-group.org";
 
         private const string UiPort = ":9001";
         private const string _serverPort = ":9000";
@@ -41,7 +62,29 @@ namespace VideoCrypt.Image.Api.Repositories
             return new AmazonS3Client(credentials, config);
         }
 
-        public async Task<ImageResponse> UploadFileAsync(IFormFile formFile, string userId)
+        public async Task<string> GetImageAsync(string fileName, ClaimsPrincipal user)
+        {
+            using var connection = _context.CreateConnection();
+            var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(
+                "SELECT * FROM image_metadata WHERE file_name = @FileName", new { FileName = fileName });
+
+            if (cachedImage != null)
+                return cachedImage.Url;
+
+            using var client = await CreateAuthorizedClient(user);
+            var response = await client.GetAsync($"{_baseUrl}/api/image/{fileName}");
+            if (!response.IsSuccessStatusCode)
+                return response.StatusCode switch
+                {
+                    HttpStatusCode.NotFound => throw new CultureNotFoundException("Image not found."),
+                    _ => throw new HttpProtocolException((long)response.StatusCode,
+                        $"Failed to retrieve image: {response.ReasonPhrase}", new Exception())
+                };
+            var imageUrl = await response.Content.ReadAsStringAsync();
+            return imageUrl;
+        }
+
+public async Task<ImageResponse> UploadFileAsync(IFormFile formFile, string userId)
         {
             var userBucket = await GetUserBucketAsync(userId);
 
@@ -111,7 +154,6 @@ namespace VideoCrypt.Image.Api.Repositories
             }
         }
 
-
         public async Task<bool> FileExistsAsync(string key, string userId)
         {
             try
@@ -145,6 +187,74 @@ namespace VideoCrypt.Image.Api.Repositories
             }
         }
 
+        public async Task<PaginatedList<string>> ListImagesAsync(int page, int pageSize, ClaimsPrincipal user)
+        {
+            using var client = await CreateAuthorizedClient(user);
+            var response = await client.GetAsync($"{_baseUrl}/api/Image/list?page={page}&pageSize={pageSize}");
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var files = JsonSerializer.Deserialize<PaginatedList<string>>(responseBody, options);
+            return files;
+        }
+
+        public async Task<string> ResizeImageAsync(string fileName, int width, int height, ImageModificationType type,
+            ClaimsPrincipal user)
+        {
+            using var connection = _context.CreateConnection();
+            var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(
+                "SELECT * FROM image_metadata WHERE file_name = @FileName", new { FileName = fileName });
+
+            if (cachedImage != null)
+                return cachedImage.Url;
+
+            using var client = await CreateAuthorizedClient(user);
+            var response = await client.GetAsync($"{_baseUrl}/api/image/resize?fileName={fileName}&width={width}&height={height}&type={type}");
+            if (!response.IsSuccessStatusCode)
+            {
+                switch (response.StatusCode)
+                {
+                    case HttpStatusCode.NotFound:
+                        throw new CultureNotFoundException("Image not found.");
+                    default:
+                        throw new HttpProtocolException((long)response.StatusCode, $"Failed to retrieve image: {response.ReasonPhrase}", new Exception());
+                }
+            }
+            var imageUrl = await response.Content.ReadAsStringAsync();
+            return imageUrl;
+        }
+
+        public async Task<byte[]> DownloadFileAsync(string fileName, ClaimsPrincipal user)
+        {
+            try
+            {
+                using var client = await CreateAuthorizedClient(user);
+                var response = await client.GetAsync($"{_baseUrl}/api/Image/{fileName}");
+                if (response.IsSuccessStatusCode) return await response.Content.ReadAsByteArrayAsync();
+                _logger.LogError($"Error downloading file {fileName}: {response.ReasonPhrase}");
+                return response.StatusCode switch
+                {
+                    HttpStatusCode.NotFound => throw new CultureNotFoundException("Image not found."),
+                    _ => throw new HttpProtocolException((long)response.StatusCode, $"Failed to retrieve image: {response.ReasonPhrase}", new Exception())
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while downloading the image.");
+                throw;
+            }
+        }
+
+        public async Task<bool> DeleteAsync(string fileName, ClaimsPrincipal user)
+        {
+            using var client = await CreateAuthorizedClient(user);
+            var response = await client.DeleteAsync($"{_baseUrl}/api/Image/{fileName}");
+            return response.IsSuccessStatusCode;
+        }
+
         private async Task<string> GetUserBucketAsync(string userId)
         {
             var bucketPrefix = $"{userId}";
@@ -175,6 +285,20 @@ namespace VideoCrypt.Image.Api.Repositories
             _logger.LogInformation("Bucket {BucketName} created successfully", bucketPrefix);
 
             return userBucket.BucketName;
+        }
+
+        private async Task<HttpClient> CreateAuthorizedClient(ClaimsPrincipal userClaims)
+        {
+            var client = _httpClientFactory.CreateClient("AuthorizedClient");
+            var userId = await GenerateBucketName(userClaims);
+            client.DefaultRequestHeaders.Add("X-UserId", $"{userId}");
+            return client;
+        }
+
+        private async Task<string> GenerateBucketName(ClaimsPrincipal userClaims)
+        {
+            var user = await _userManager.GetUserAsync(userClaims);
+            return user.Id;
         }
     }
 }

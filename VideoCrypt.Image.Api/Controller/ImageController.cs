@@ -1,12 +1,7 @@
-using System.Net;
-using System.Text.Json;
-using Dapper;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
+using System.Globalization;using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using VideoCrypt.Image.Api.Repositories;
-using VideoCrypt.Image.Data;
 using VideoCrypt.Image.Data.Models;
 
 namespace VideoCrypt.Image.Api.Controller
@@ -15,26 +10,17 @@ namespace VideoCrypt.Image.Api.Controller
     [ApiController]
     [Route("api/[controller]")]
     public class ImageController(
-        IHttpClientFactory httpClientFactory,
-        ApplicationDbContext context,
-        IImageUploadRepository imageUploadRepository,
-        UserManager<IdentityUser> userManager)
-        : ControllerBase
+        IImageRepository imageRepository,
+        UserManager<IdentityUser> userManager
+    ) : ControllerBase
     {
-        private readonly IHttpClientFactory _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
-        private readonly ApplicationDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
-        private readonly IImageUploadRepository _imageUploadRepository = imageUploadRepository ?? throw new ArgumentNullException(nameof(imageUploadRepository));
+        private readonly IImageRepository _imageRepository =
+            imageRepository ?? throw new ArgumentNullException(nameof(imageRepository));
+
         private readonly string _baseUrl = "https://image.john-group.org";
 
         private readonly UserManager<IdentityUser> _userManager =
             userManager ?? throw new ArgumentNullException(nameof(userManager));
-        private async Task<HttpClient>  CreateAuthorizedClient()
-        {
-            var client = _httpClientFactory.CreateClient("AuthorizedClient");
-            var userId = await GenerateBucketName();
-            client.DefaultRequestHeaders.Add("X-UserId", $"{userId}"); 
-            return client;
-        }
 
         [HttpPost("upload")]
         public async Task<IActionResult> Upload([FromForm] IFormFile file)
@@ -43,9 +29,8 @@ namespace VideoCrypt.Image.Api.Controller
             {
                 if (file == null)
                     return BadRequest("File is null.");
+                var imageResponse = _imageRepository.UploadFileAsync(file, await GenerateBucketName());
 
-                var imageResponse = _imageUploadRepository.UploadFileAsync(file, await GenerateBucketName());
-                
                 return Ok(imageResponse);
             }
             catch (Exception ex)
@@ -60,20 +45,8 @@ namespace VideoCrypt.Image.Api.Controller
         {
             try
             {
-                using var client = await CreateAuthorizedClient();
-                var response = await client.DeleteAsync($"{_baseUrl}/api/Image/{fileName}");
-
-                if (response.StatusCode == HttpStatusCode.Unauthorized)
-                {
-                    await SignOutUser();
-                    return Unauthorized("Unauthorized access. Please sign in again.");
-                }
-
-                if (response.IsSuccessStatusCode) return Ok($"File '{fileName}' deleted successfully.");
-
-                return response.StatusCode == HttpStatusCode.NotFound
-                    ? NotFound("File not found.")
-                    : StatusCode((int)response.StatusCode, $"Failed to delete file: {response.ReasonPhrase}");
+                await _imageRepository.DeleteAsync(fileName, User);
+                return Ok($"File '{fileName}' deleted successfully.");
             }
             catch (Exception ex)
             {
@@ -87,33 +60,18 @@ namespace VideoCrypt.Image.Api.Controller
         {
             try
             {
-                using var connection = _context.CreateConnection();
-                var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(
-                    "SELECT * FROM image_metadata WHERE file_name = @FileName", new { FileName = fileName });
-
-                if (cachedImage != null)
-                    return Ok(cachedImage.Url);
-
-                using var client = await CreateAuthorizedClient();
-                var response = await client.GetAsync($"{_baseUrl}/api/image/{fileName}");
-
-                if (response.StatusCode == HttpStatusCode.Unauthorized)
-                {
-                    await SignOutUser();
-                    return Unauthorized("Unauthorized access. Please sign in again.");
-                }
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var imageUrl = await response.Content.ReadAsStringAsync();
-                    return Ok(imageUrl);
-                }
-
-                return response.StatusCode switch
-                {
-                    HttpStatusCode.NotFound => NotFound("Image not found."),
-                    _ => StatusCode((int)response.StatusCode, $"Failed to retrieve image: {response.ReasonPhrase}")
-                };
+                var url = await _imageRepository.GetImageAsync(fileName, User);
+                return Ok(url);
+            }
+            catch (CultureNotFoundException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return NotFound(ex.Message);
+            }
+            catch (HttpProtocolException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode((int)ex.ErrorCode, ex.Message);
             }
             catch (Exception ex)
             {
@@ -127,24 +85,7 @@ namespace VideoCrypt.Image.Api.Controller
         {
             try
             {
-                using var client = await CreateAuthorizedClient();
-                var response = await client.GetAsync($"{_baseUrl}/api/file/download/{fileName}");
-
-                if (response.StatusCode == HttpStatusCode.Unauthorized)
-                {
-                    await SignOutUser();
-                    return Unauthorized("Unauthorized access. Please sign in again.");
-                }
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    if (response.StatusCode == HttpStatusCode.NotFound)
-                        return NotFound("File not found.");
-
-                    return StatusCode((int)response.StatusCode, $"Failed to download file: {response.ReasonPhrase}");
-                }
-
-                var fileBytes = await response.Content.ReadAsByteArrayAsync();
+                var fileBytes = await _imageRepository.DownloadFileAsync(fileName, User);
                 return File(fileBytes, "application/octet-stream", fileName);
             }
             catch (Exception ex)
@@ -159,29 +100,7 @@ namespace VideoCrypt.Image.Api.Controller
         {
             try
             {
-                using var client = await CreateAuthorizedClient();
-                var response = await client.GetAsync($"{_baseUrl}/api/Image/list?page={page}&pageSize={pageSize}");
-
-                if (response.StatusCode == HttpStatusCode.Unauthorized)
-                {
-                    await SignOutUser();
-                    return Unauthorized("Unauthorized access. Please sign in again.");
-                }
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    return response.StatusCode == HttpStatusCode.NotFound
-                        ? NotFound("No files found.")
-                        : StatusCode((int)response.StatusCode, $"Failed to get files: {response.ReasonPhrase}");
-                }
-
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                };
-
-                var responseBody = await response.Content.ReadAsStringAsync();
-                var files = JsonSerializer.Deserialize<PaginatedList<string>>(responseBody, options);
+                var files = await _imageRepository.ListImagesAsync(page, pageSize, User);
                 return Ok(files);
             }
             catch (Exception ex)
@@ -191,14 +110,26 @@ namespace VideoCrypt.Image.Api.Controller
             }
         }
 
-        private async Task<string>  GenerateBucketName()
+        [HttpGet("getResized/{fileName}")]
+        public async Task<IActionResult> GetResizedImage([FromQuery] string fileName, [FromQuery] int width,
+            [FromQuery] int height, [FromQuery] ImageModificationType type)
+        {
+            try
+            {
+                var resizedImageUrl = await _imageRepository.ResizeImageAsync(fileName, width, height, type, User);
+                return Ok(resizedImageUrl);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        private async Task<string> GenerateBucketName()
         {
             var user = await _userManager.GetUserAsync(User);
             return user.Id;
-        }
-        private async Task SignOutUser()
-        {
-            await HttpContext.SignOutAsync();
         }
     }
 }
