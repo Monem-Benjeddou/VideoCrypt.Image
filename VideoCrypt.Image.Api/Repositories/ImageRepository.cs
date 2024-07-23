@@ -226,7 +226,7 @@ namespace VideoCrypt.Image.Api.Repositories
                 return cachedImage.Url;
 
             using var client = await CreateAuthorizedClient(user);
-            var response = await client.GetAsync($"{_baseUrl}/api/image/resize?fileName={fileName}&width={width}&height={height}&type={type}");
+            var response = await client.PostAsync($"{_baseUrl}/api/image/resize?fileName={fileName}&width={width}&height={height}&type={type}", null );
             if (!response.IsSuccessStatusCode)
             {
                 switch (response.StatusCode)

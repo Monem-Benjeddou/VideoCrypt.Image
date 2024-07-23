@@ -10,8 +10,8 @@ public class ImagesGalleryComponent(IFileRepository fileRepository) : HydroCompo
     private Task<PaginatedList<string>>? _cachedImages;
 
     public int CurrentPage { get; set; } = 1;
-    public int PageSize { get; set; } = 8; 
-    public int TotalPages { get; private set; }
+    public int PageSize { get; set; } = 8;
+    public int TotalPages { get; set; } = 1;
 
     public void PageChanged(int i)
     {
