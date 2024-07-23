@@ -5,19 +5,18 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <InvariantGlobalization>true</InvariantGlobalization>
-        <RootNamespace>VideoCrypt.Image.Server</RootNamespace>
+        <RootNamespace>VideoCrypt.Image.CashingApp</RootNamespace>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="AWSSDK.S3" Version="3.7.305.19" />
         <PackageReference Include="Dapper" Version="2.1.35" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
+        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
         <PackageReference Include="StackExchange.Redis" Version="2.8.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+        <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\VideoCrypt.Image.Data\VideoCrypt.Image.Data.csproj" />
-    </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Models\" />
     </ItemGroup>
 </Project>

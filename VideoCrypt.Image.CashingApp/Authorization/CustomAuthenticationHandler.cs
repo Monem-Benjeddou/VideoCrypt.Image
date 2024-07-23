@@ -1,20 +1,17 @@
-using System.Globalization;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 
-namespace VideoCrypt.Image.Server.Authorization
+namespace VideoCrypt.Image.CashingApp.Authorization
 {
-    public class CustomAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+    public class CustomAuthenticationHandler(
+        IOptionsMonitor<AuthenticationSchemeOptions> options,
+        ILoggerFactory logger,
+        UrlEncoder encoder,
+        ISystemClock clock)
+        : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder, clock)
     {
-        public CustomAuthenticationHandler(
-            IOptionsMonitor<AuthenticationSchemeOptions> options,
-            ILoggerFactory logger,
-            UrlEncoder encoder,
-            ISystemClock clock) 
-            : base(options, logger, encoder, clock) { }
-
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
             var headers = Request.Headers;

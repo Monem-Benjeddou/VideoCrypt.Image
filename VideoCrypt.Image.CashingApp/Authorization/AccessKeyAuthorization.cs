@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 
-namespace VideoCrypt.Image.Server.Authorization;
+namespace VideoCrypt.Image.CashingApp.Authorization;
 
-public class AccessKeyAuthorization : AuthorizeAttribute
+public abstract class AccessKeyAuthorization : AuthorizeAttribute
 {
     public const string PolicyName = "AccessKeyPolicy";
 
-    public AccessKeyAuthorization()
+    protected AccessKeyAuthorization()
     {
         Policy = PolicyName;
     }

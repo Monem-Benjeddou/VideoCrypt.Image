@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', function() {
         let button = event.relatedTarget;
         let imageSrc = button.getAttribute('data-bs-src');
         let modalImage = imageModal.querySelector('#modalImage');
+        let shareLink = imageModal.querySelector('#share-link');
+        shareLink.value = imageSrc;
         modalImage.src = imageSrc;
         let imageResolution = imageModal.querySelector('#imageResolution');
         getMeta(imageSrc).then(img => {

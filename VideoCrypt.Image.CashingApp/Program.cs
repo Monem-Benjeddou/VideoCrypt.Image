@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using VideoCrypt.Image.CashingApp.Authorization;
+using VideoCrypt.Image.CashingApp.Middlewares;
 using VideoCrypt.Image.Data;
 using VideoCrypt.Image.CashingApp.Repository;
-using VideoCrypt.Image.Server.Authorization;
 using VideoCrypt.Image.Server.Dapper;
-using VideoCrypt.Image.Server.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options =>

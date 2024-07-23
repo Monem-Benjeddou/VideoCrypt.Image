@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using VideoCrypt.Image.CashingApp.Repository;
 using VideoCrypt.Image.Data.Models;
@@ -12,7 +10,8 @@ namespace VideoCrypt.Image.CashingApp.Controllers
     [Authorize]
     public class ImageController(IImageRepository imageRepository) : ControllerBase
     {
-        private readonly IImageRepository _imageRepository = imageRepository ?? throw new ArgumentNullException(nameof(imageRepository));
+        private readonly IImageRepository _imageRepository =
+            imageRepository ?? throw new ArgumentNullException(nameof(imageRepository));
 
         [HttpGet("{fileName}")]
         public async Task<IActionResult> GetImageUrl(string fileName)
@@ -20,6 +19,21 @@ namespace VideoCrypt.Image.CashingApp.Controllers
             try
             {
                 var url = await _imageRepository.GetSharedFileUrlAsync(fileName, GetUserId());
+                return Ok(url);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpPost("resize")]
+        public async Task<IActionResult> ResizeImage([FromQuery] string fileName, [FromQuery] int width,
+            [FromQuery] int height, [FromQuery] ImageModificationType type)
+        {
+            try
+            {
+                var url = await _imageRepository.GetSharedFileUrlAsync(fileName, GetUserId(), height, width, type);
                 return Ok(url);
             }
             catch (Exception ex)
@@ -65,13 +79,13 @@ namespace VideoCrypt.Image.CashingApp.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
         private string GetUserId()
         {
             if (!Request.Headers.TryGetValue("X-UserId", out var userIdHeader))
             {
                 return null;
             }
-
             return userIdHeader;
         }
     }

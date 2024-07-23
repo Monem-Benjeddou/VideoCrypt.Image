@@ -12,6 +12,7 @@ using Dapper;
 using Microsoft.Extensions.Logging;
 using VideoCrypt.Image.Data;
 using VideoCrypt.Image.Data.Models;
+using VideoCrypt.Image.Server.Utilities;
 
 namespace VideoCrypt.Image.CashingApp.Repository
 {
@@ -45,13 +46,19 @@ namespace VideoCrypt.Image.CashingApp.Repository
             _s3Client = new AmazonS3Client(credentials, config);
         }
 
-        public async Task<string> GetSharedFileUrlAsync(string fileName, string userId)
+        public async Task<string> GetSharedFileUrlAsync(string fileName, string userId, int height = 0,int width = 0,ImageModificationType type=ImageModificationType.Resize )
         {
             _logger.LogInformation($"Attempting to retrieve URL for file: {fileName} for user: {userId}");
-
+            var modifidName = "";
+            if (height != 0 && width != 0)
+                modifidName = GenerateModifiedFileName(fileName, width, height, type);
+            
             using (var connection = _context.CreateConnection())
             {
-                var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(SelectByNameSql, new { FileName = fileName, UserId = userId });
+                var searchedName = string.IsNullOrEmpty(modifidName) ? fileName : modifidName; 
+                var cachedImage = 
+                    await connection.QueryFirstOrDefaultAsync<ImageMetadata>(SelectByNameSql, 
+                        new { FileName = searchedName, UserId = userId });
 
                 if (cachedImage != null)
                 {
@@ -64,6 +71,11 @@ namespace VideoCrypt.Image.CashingApp.Repository
             {
                 var userBucket = await GetOrCreateUserBucketAsync(userId);
                 var fileBytes = await DownloadFileAsync(fileName, userBucket);
+                if (height != 0 && width != 0)
+                {
+                    fileBytes = ResizeImageUtility.ResizeImage(fileBytes, width, height, type);
+                    fileName = modifidName;
+                }
                 var cacheDirectory = Path.Combine("/app/cache", userId);
 
                 EnsureCacheDirectoryExists(cacheDirectory);
@@ -258,7 +270,14 @@ namespace VideoCrypt.Image.CashingApp.Repository
                 throw;
             }
         }
-        
+        private string GenerateModifiedFileName(string originalFileName, int width, int height, ImageModificationType type)
+        {
+            var fileExtension = Path.GetExtension(originalFileName);
+            var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(originalFileName);
+            var typeString = type.ToString().ToLower();
+
+            return $"{fileNameWithoutExtension}_{typeString}_w{width}_h{height}{fileExtension}";
+        }
         private string GenerateCachedFileUrl(string fileName, string userId)
         {
             var url = $"https://image.john-group.org/cache/{userId}/{fileName}";

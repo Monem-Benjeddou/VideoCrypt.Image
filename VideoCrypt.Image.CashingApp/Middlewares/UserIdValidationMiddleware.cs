@@ -1,4 +1,4 @@
-namespace VideoCrypt.Image.Server.Middlewares;
+namespace VideoCrypt.Image.CashingApp.Middlewares;
 
 public class UserIdValidationMiddleware(RequestDelegate next)
 {

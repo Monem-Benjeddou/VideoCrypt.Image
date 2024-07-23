@@ -21,9 +21,11 @@ builder.Services.AddCors(options =>
                 .AllowCredentials();
         });
 });
+var accessKey = Environment.GetEnvironmentVariable("access_key") ?? throw new Exception("Access key not found");
+
 builder.Services.AddHttpClient("AuthorizedClient", client =>
 {
-    client.DefaultRequestHeaders.Add("AccessKey", "Qqt3KMXNlK4iCKqPhgEd");
+    client.DefaultRequestHeaders.Add("AccessKey", accessKey);
 });
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(

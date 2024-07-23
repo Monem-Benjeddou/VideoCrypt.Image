@@ -1,25 +1,17 @@
 using Microsoft.AspNetCore.Authorization;
-namespace VideoCrypt.Image.Server.Authorization;
 
-public class AccessKeyHandler : AuthorizationHandler<AccessKeyRequirement>
+namespace VideoCrypt.Image.CashingApp.Authorization;
+
+public class AccessKeyHandler(IHttpContextAccessor httpContextAccessor) : AuthorizationHandler<AccessKeyRequirement>
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-
-    public AccessKeyHandler(IHttpContextAccessor httpContextAccessor)
-    {
-        _httpContextAccessor = httpContextAccessor;
-    }
-
     protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, AccessKeyRequirement requirement)
     {
-        var request = _httpContextAccessor.HttpContext.Request;
+        var request = httpContextAccessor.HttpContext.Request;
 
-        if (request.Headers.TryGetValue("AccessKey", out var extractedKey))
+        if (!request.Headers.TryGetValue("AccessKey", out var extractedKey)) return Task.CompletedTask;
+        if (extractedKey == requirement.AccessKey)
         {
-            if (extractedKey == requirement.AccessKey)
-            {
-                context.Succeed(requirement);
-            }
+            context.Succeed(requirement);
         }
 
         return Task.CompletedTask;
