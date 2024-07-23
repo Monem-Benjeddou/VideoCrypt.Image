@@ -84,7 +84,7 @@ namespace VideoCrypt.Image.Api.Repositories
             return imageUrl;
         }
 
-public async Task<ImageResponse> UploadFileAsync(IFormFile formFile, string userId)
+        public async Task<ImageResponse> UploadFileAsync(IFormFile formFile, string userId)
         {
             var userBucket = await GetUserBucketAsync(userId);
 
