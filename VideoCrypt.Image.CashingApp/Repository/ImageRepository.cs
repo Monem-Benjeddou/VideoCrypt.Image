@@ -1,15 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Util;
 using Dapper;
-using Microsoft.Extensions.Logging;
 using VideoCrypt.Image.Data;
 using VideoCrypt.Image.Data.Models;
 using VideoCrypt.Image.Server.Utilities;
@@ -49,13 +43,13 @@ namespace VideoCrypt.Image.CashingApp.Repository
         public async Task<string> GetSharedFileUrlAsync(string fileName, string userId, int height = 0,int width = 0,ImageModificationType type=ImageModificationType.Resize )
         {
             _logger.LogInformation($"Attempting to retrieve URL for file: {fileName} for user: {userId}");
-            var modifidName = "";
+            var modifiedName = "";
             if (height != 0 && width != 0)
-                modifidName = GenerateModifiedFileName(fileName, width, height, type);
+                modifiedName = GenerateModifiedFileName(fileName, width, height, type);
             
             using (var connection = _context.CreateConnection())
             {
-                var searchedName = string.IsNullOrEmpty(modifidName) ? fileName : modifidName; 
+                var searchedName = string.IsNullOrEmpty(modifiedName) ? fileName : modifiedName; 
                 var cachedImage = 
                     await connection.QueryFirstOrDefaultAsync<ImageMetadata>(SelectByNameSql, 
                         new { FileName = searchedName, UserId = userId });
@@ -74,7 +68,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
                 if (height != 0 && width != 0)
                 {
                     fileBytes = ResizeImageUtility.ResizeImage(fileBytes, width, height, type);
-                    fileName = modifidName;
+                    fileName = modifiedName;
                 }
                 var cacheDirectory = Path.Combine("/app/cache", userId);
 

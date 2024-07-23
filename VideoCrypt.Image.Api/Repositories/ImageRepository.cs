@@ -1,31 +1,33 @@
 using System.Net;
 using Amazon.Runtime;
 using Amazon.S3;
-using Amazon.S3.Model;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Collections.Generic;
+using Amazon.S3.Model;using System.Diagnostics;
+using Humanizer;
+using VideoCrypt.Image.Data.Models;
 
 namespace VideoCrypt.Image.Api.Repositories
 {
-    public class ImageUploadRepository(ILogger<ImageUploadRepository> logger) : IImageUploadRepository
+    public class ImageRepository(ILogger<ImageRepository> logger) : IImageRepository
     {
         private readonly string _serviceUrl = Environment.GetEnvironmentVariable("service_url") ??
-                                 throw new Exception("Service url key not found");
-        private const string UiPort = ":9001"; 
-        private const string _serverPort = ":9000";
-        private readonly string _accessKey = Environment.GetEnvironmentVariable("access_key") ?? 
-                                throw new Exception("Access key not found");
-        private readonly string _secretKey = Environment.GetEnvironmentVariable("secret_key") ??
-                                throw new Exception("Secret key not found"); 
-        private readonly string[] _permittedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".svg" };
-        private readonly string[] _permittedMimeTypes = { "image/jpeg", "image/png", "image/gif", "image/bmp", "image/tiff", "image/svg+xml" };
+                                              throw new Exception("Service url key not found");
 
-        private readonly ILogger<ImageUploadRepository> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        private const string UiPort = ":9001";
+        private const string _serverPort = ":9000";
+
+        private readonly string _accessKey = Environment.GetEnvironmentVariable("access_key") ??
+                                             throw new Exception("Access key not found");
+
+        private readonly string _secretKey = Environment.GetEnvironmentVariable("secret_key") ??
+                                             throw new Exception("Secret key not found");
+
+        private readonly string[] _permittedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".svg" };
+
+        private readonly string[] _permittedMimeTypes =
+            { "image/jpeg", "image/png", "image/gif", "image/bmp", "image/tiff", "image/svg+xml" };
+
+        private readonly ILogger<ImageRepository> _logger =
+            logger ?? throw new ArgumentNullException(nameof(logger));
 
         private AmazonS3Client GetS3Client()
         {
@@ -39,7 +41,7 @@ namespace VideoCrypt.Image.Api.Repositories
             return new AmazonS3Client(credentials, config);
         }
 
-        public async Task<bool> UploadFileAsync(IFormFile formFile, string userId)
+        public async Task<ImageResponse> UploadFileAsync(IFormFile formFile, string userId)
         {
             var userBucket = await GetUserBucketAsync(userId);
 
@@ -52,9 +54,12 @@ namespace VideoCrypt.Image.Api.Repositories
 
             if (!_permittedExtensions.Contains(fileExtension) || !_permittedMimeTypes.Contains(contentType))
             {
-                _logger.LogWarning("File extension {FileExtension} or MIME type {ContentType} is not permitted", fileExtension, contentType);
+                _logger.LogWarning("File extension {FileExtension} or MIME type {ContentType} is not permitted",
+                    fileExtension, contentType);
                 throw new InvalidOperationException("File type is not permitted.");
             }
+
+            var stopwatch = Stopwatch.StartNew();
 
             try
             {
@@ -74,14 +79,30 @@ namespace VideoCrypt.Image.Api.Repositories
                 _logger.LogInformation("Uploading file {FileName} to bucket {BucketName}", fileName, userBucket);
                 var response = await client.PutObjectAsync(request);
 
+                stopwatch.Stop();
+
                 if (response.HttpStatusCode != HttpStatusCode.OK)
                 {
-                    _logger.LogError("Error uploading file {FileName}: {HttpStatusCode}", fileName, response.HttpStatusCode);
+                    _logger.LogError("Error uploading file {FileName}: {HttpStatusCode}", fileName,
+                        response.HttpStatusCode);
                     throw new Exception($"Error uploading file: {response.HttpStatusCode}");
                 }
 
                 _logger.LogInformation("File {FileName} uploaded successfully", fileName);
-                return true;
+                var imageResponse = new ImageResponse()
+                {
+                    success = true,
+                    statusCode = (int)response.HttpStatusCode,
+                    timestamp = DateTime.Now,
+                    timeMs = (int)stopwatch.ElapsedMilliseconds,
+                    data = new Image.Data.Models.Data
+                    {
+                        user_id = userId,
+                        file_name = fileName
+                    }
+                };
+
+                return imageResponse;
             }
             catch (Exception e)
             {
@@ -89,6 +110,7 @@ namespace VideoCrypt.Image.Api.Repositories
                 throw;
             }
         }
+
 
         public async Task<bool> FileExistsAsync(string key, string userId)
         {
@@ -144,7 +166,8 @@ namespace VideoCrypt.Image.Api.Repositories
 
             if (createBucketResponse.HttpStatusCode != HttpStatusCode.OK)
             {
-                _logger.LogError("Error creating bucket {BucketName}: {HttpStatusCode}", bucketPrefix, createBucketResponse.HttpStatusCode);
+                _logger.LogError("Error creating bucket {BucketName}: {HttpStatusCode}", bucketPrefix,
+                    createBucketResponse.HttpStatusCode);
                 throw new Exception($"Error creating bucket: {createBucketResponse.HttpStatusCode}");
             }
 
