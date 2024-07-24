@@ -35,6 +35,9 @@ namespace VideoCrypt.Image.CashingApp.Controllers
             {
                 var url = await _imageRepository.GetSharedFileUrlAsync(fileName, GetUserId(), height, width, type);
                 return Ok(url);
+            }     catch (KeyNotFoundException ex)
+            {
+                return NotFound("The specified image not found");
             }
             catch (Exception ex)
             {

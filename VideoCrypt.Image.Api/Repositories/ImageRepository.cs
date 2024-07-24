@@ -84,17 +84,17 @@ namespace VideoCrypt.Image.Api.Repositories
             return imageUrl;
         }
 
-        public async Task<ImageResponse> UploadFileAsync(IFormFile formFile, string userId)
+        public async Task<ImageResponse> UploadFileAsync(IFormFile formFile, ClaimsPrincipal user)
         {
+            var userId = await GenerateBucketName(user);
             var userBucket = await GetUserBucketAsync(userId);
-
             if (formFile == null)
                 throw new ArgumentException("formFile cannot be null", nameof(formFile));
 
             var fileName = formFile.FileName;
             var contentType = formFile.ContentType;
             var fileExtension = Path.GetExtension(fileName).ToLowerInvariant();
-
+             fileName = $"{Ulid.NewUlid().ToString()}.{fileExtension}";
             if (!_permittedExtensions.Contains(fileExtension) || !_permittedMimeTypes.Contains(contentType))
             {
                 _logger.LogWarning("File extension {FileExtension} or MIME type {ContentType} is not permitted",

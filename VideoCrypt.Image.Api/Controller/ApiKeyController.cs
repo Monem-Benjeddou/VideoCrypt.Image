@@ -76,14 +76,14 @@ namespace VideoCrypt.Image.Api.Controller
             {
                 var user = await _userManager.GetUserAsync(User);
                 var apiKeyString = ApiKeyGenerator.GenerateApiKey(user.Id);
-
+                var timeNow = DateTime.UtcNow;
                 var apiKey = new ApiKey
                 {
                     Key = apiKeyString,
                     Name = key.Name,
                     Description = key.Description,
-                    CreatedAt = DateTime.UtcNow,
-                    ExpireAt = key.ExpireAt,
+                    CreatedAt = timeNow,
+                    ExpireAt = key.ExpireAt ?? new DateTime(timeNow.Year,timeNow.Month+1,timeNow.Day),
                     UserId = user.Id
                 };
 

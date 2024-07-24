@@ -40,7 +40,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
             _s3Client = new AmazonS3Client(credentials, config);
         }
 
-        public async Task<string> GetSharedFileUrlAsync(string fileName, string userId, int height = 0,int width = 0,ImageModificationType type=ImageModificationType.Resize )
+        public async Task<string> GetSharedFileUrlAsync(string fileName, string userId, int height = 0,int width = 0, ImageModificationType type=ImageModificationType.Resize )
         {
             _logger.LogInformation($"Attempting to retrieve URL for file: {fileName} for user: {userId}");
             var modifiedName = "";
@@ -70,6 +70,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
                     fileBytes = ResizeImageUtility.ResizeImage(fileBytes, width, height, type);
                     fileName = modifiedName;
                 }
+
                 var cacheDirectory = Path.Combine("/app/cache", userId);
 
                 EnsureCacheDirectoryExists(cacheDirectory);
@@ -97,6 +98,11 @@ namespace VideoCrypt.Image.CashingApp.Repository
                 _logger.LogInformation($"Metadata for {fileName} saved in database with URL: {url}");
 
                 return url;
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogError($"Error encountered: '{ex.Message}' when fetching or caching file");
+                throw;
             }
             catch (Exception e)
             {

@@ -23,13 +23,13 @@ namespace VideoCrypt.Image.Api.Controller
             userManager ?? throw new ArgumentNullException(nameof(userManager));
 
         [HttpPost("upload")]
-        public async Task<IActionResult> Upload([FromForm] IFormFile file)
+        public async Task<IActionResult> Upload([FromForm] IFormFile? file)
         {
             try
             {
                 if (file == null)
                     return BadRequest("File is null.");
-                var imageResponse = _imageRepository.UploadFileAsync(file, await GenerateBucketName());
+                var imageResponse = _imageRepository.UploadFileAsync(file, User);
 
                 return Ok(imageResponse);
             }
@@ -119,17 +119,16 @@ namespace VideoCrypt.Image.Api.Controller
                 var resizedImageUrl = await _imageRepository.ResizeImageAsync(fileName, width, height, type, User);
                 return Ok(resizedImageUrl);
             }
+            catch (CultureNotFoundException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return NotFound("The specified image not found");
+            }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
-        }
-
-        private async Task<string> GenerateBucketName()
-        {
-            var user = await _userManager.GetUserAsync(User);
-            return user.Id;
         }
     }
 }

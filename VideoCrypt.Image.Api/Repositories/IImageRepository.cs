@@ -7,7 +7,7 @@ namespace VideoCrypt.Image.Api.Repositories
     {
         Task<bool> DeleteAsync(string fileName, ClaimsPrincipal user);
         Task<string> GetImageAsync(string name, ClaimsPrincipal user);
-        Task<ImageResponse> UploadFileAsync(IFormFile file, string userId);
+        Task<ImageResponse> UploadFileAsync(IFormFile file, ClaimsPrincipal userClaims);
         Task<bool> FileExistsAsync(string key, string userId);
         Task<PaginatedList<string>> ListImagesAsync(int page,int pageSize,ClaimsPrincipal user);
         Task<string> ResizeImageAsync(string fileName, int width,

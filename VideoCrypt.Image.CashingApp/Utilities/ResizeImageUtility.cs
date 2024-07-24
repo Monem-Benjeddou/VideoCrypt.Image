@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using VideoCrypt.Image.Data.Models;
@@ -15,11 +14,18 @@ namespace VideoCrypt.Image.Server.Utilities
             if (file == null || file.Length == 0)
                 throw new ArgumentException("Invalid image file");
 
-            if (width <= 0 || height <= 0)
-                throw new ArgumentException("Width and height must be greater than zero");
+            if (width == 0 || height == 0)
+                throw new ArgumentException("Width and height must be non-zero");
 
-            using var fileStreams = new MemoryStream(file);
-            using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(fileStreams);            
+            bool flipHorizontally = width < 0;
+            bool flipVertically = height < 0;
+
+            width = Math.Abs(width);
+            height = Math.Abs(height);
+
+            using var fileStream = new MemoryStream(file);
+            using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(fileStream);
+
             switch (type)
             {
                 case ImageModificationType.Resize:
@@ -46,6 +52,16 @@ namespace VideoCrypt.Image.Server.Utilities
 
                 default:
                     throw new NotSupportedException($"Image modification type '{type}' is not supported");
+            }
+
+            if (flipHorizontally)
+            {
+                image.Mutate(x => x.Flip(FlipMode.Horizontal));
+            }
+
+            if (flipVertically)
+            {
+                image.Mutate(x => x.Flip(FlipMode.Vertical));
             }
 
             using var outputMs = new MemoryStream();
