@@ -49,3 +49,18 @@ body {
 .effect-ming:hover figcaption {
   opacity: 1;
 }
+.btn-delete {
+  margin-top: 8px;
+  background-color: #dc3545; /* Bootstrap's danger color */
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+  font-size: 1.2rem;
+
+}
+.btn-delete:hover {
+  background-color: #c82333; /* Darker shade for hover */
+}

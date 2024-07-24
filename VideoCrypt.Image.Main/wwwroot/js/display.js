@@ -30,6 +30,15 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     });
 
+    let copyLinkButton = document.getElementById('copyLinkButton');
+    copyLinkButton.addEventListener('click', function() {
+        let shareLink = document.getElementById('share-link');
+        shareLink.select();
+        shareLink.setSelectionRange(0, 99999); // For mobile devices
+        document.execCommand('copy');
+        alert('Copied the URL: ' + shareLink.value);
+    });
+
     function downloadImage(imageUrl) {
         const apiUrl = `/Image/download?url=${encodeURIComponent(imageUrl)}`;
 

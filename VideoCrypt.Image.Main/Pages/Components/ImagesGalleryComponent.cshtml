@@ -24,21 +24,7 @@
         align-items: center;
         justify-content: center;
     }
-    .btn-delete {
-        margin-top: 8px;
-        background-color: #dc3545; /* Bootstrap's danger color */
-        border: none;
-        color: white;
-        padding: 5px 10px;
-        cursor: pointer;
-        border-radius: 5px;
-        transition: background-color 0.3s;
-        font-size: 1.2rem;
 
-    }
-    .btn-delete:hover {
-        background-color: #c82333; /* Darker shade for hover */
-    }
     .modal-body .share-link-input
     {
         width: 100%;
@@ -136,11 +122,14 @@
                         <img id="modalImage" src="" class="img-fluid">
                         <p id="imageResolution"></p>
                         <p id="imageExtension"></p>
-                        <input id="share-link" type="text" value="" class="share-link-input"></input>
+                        <div class="input-group mb-3">
+                            <input id="share-link" type="text" value="" class="form-control share-link-input" readonly>
+                            <button class="btn btn-secondary" id="copyLinkButton">Copy URL</button>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <a id="downloadLink" href="" class="btn btn-primary" download>Download</a>
-                        <button  type="button" class="btn btn-delete" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-delete" data-bs-dismiss="modal">Close</button>
                     </div>
                 </div>
             </div>
