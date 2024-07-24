@@ -29,7 +29,7 @@ namespace VideoCrypt.Image.Api.Controller
             {
                 if (file == null)
                     return BadRequest("File is null.");
-                var imageResponse = _imageRepository.UploadFileAsync(file, User);
+                var imageResponse = await _imageRepository.UploadFileAsync(file, User);
 
                 return Ok(imageResponse);
             }
