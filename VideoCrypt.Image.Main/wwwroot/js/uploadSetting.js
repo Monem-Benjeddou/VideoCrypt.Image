@@ -9,8 +9,18 @@ Dropzone.options.myGreatDropzone = {
         $.getJSON('./?handler=ListFolderContents').done(function (data) {
             if (data !== null && data.length > 0) {
                 $.each(data, function (index, item) {
+                    // Function to extract the file extension
+                    function getFileExtension(filename) {
+                        const lastDotIndex = filename.lastIndexOf('.');
+                        return (lastDotIndex === -1 || lastDotIndex === filename.length - 1)
+                            ? ''
+                            : filename.substring(lastDotIndex + 1);
+                    }
+
+                    let extension = getFileExtension(item.name);
+                    let fileName = generateQuickGuid() + (extension ? '.' + extension : '');
                     let mockFile = {
-                        name: item.name,
+                        name: fileName,
                         size: item.fileSize,
                         filePath: item.filePath
                     };
@@ -43,6 +53,10 @@ Dropzone.options.myGreatDropzone = {
         });
     }
 };
+function generateQuickGuid() {
+    return Math.random().toString(36).substring(2, 15) +
+        Math.random().toString(36).substring(2, 15);
+}
 function updatePreviewTemplate(file, filePath) {
     let previewElement = file.previewElement;
     let progressBar = previewElement.querySelector(".dz-progress")

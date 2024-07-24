@@ -94,7 +94,6 @@ namespace VideoCrypt.Image.Api.Repositories
             var fileName = formFile.FileName;
             var contentType = formFile.ContentType;
             var fileExtension = Path.GetExtension(fileName).ToLowerInvariant();
-             fileName = $"{Ulid.NewUlid().ToString()}.{fileExtension}";
             if (!_permittedExtensions.Contains(fileExtension) || !_permittedMimeTypes.Contains(contentType))
             {
                 _logger.LogWarning("File extension {FileExtension} or MIME type {ContentType} is not permitted",
