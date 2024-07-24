@@ -1,11 +1,5 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using VideoCrypt.Image.Api.Data;
 using VideoCrypt.Image.Api.Models;
 using VideoCrypt.Image.Api.Repositories;
 using VideoCrypt.Image.Data.Models;
@@ -17,12 +11,10 @@ namespace VideoCrypt.Image.Api.Controller
     [Route("api/[controller]")]
     public class ApiKeyController(
         IApiKeyRepository apiKeyRepository,
-        UserManager<IdentityUser> userManager,
         ILogger<ApiKeyController> logger)
         : ControllerBase
     {
         private readonly IApiKeyRepository _apiKeyRepository = apiKeyRepository ?? throw new ArgumentNullException(nameof(apiKeyRepository));
-        private readonly UserManager<IdentityUser> _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
         private readonly ILogger<ApiKeyController> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         [HttpGet("all")]
@@ -30,8 +22,7 @@ namespace VideoCrypt.Image.Api.Controller
         {
             try
             {
-                var user = await _userManager.GetUserAsync(User);
-                var apiKeys = await _apiKeyRepository.GetAllApiKeysAsync(user.Id);
+                var apiKeys = await _apiKeyRepository.GetAllApiKeysAsync(User);
                 return Ok(apiKeys);
             }
             catch (Exception ex)
@@ -46,15 +37,11 @@ namespace VideoCrypt.Image.Api.Controller
         {
             try
             {
-                var user = await _userManager.GetUserAsync(User);
-                var apiKey = await _apiKeyRepository.GetApiKeyByIdAsync(id, user.Id);
-                if (apiKey == null)
-                {
-                    _logger.LogWarning("API key with id {Id} not found for user {UserId}", id, user.Id);
-                    return NotFound();
-                }
+                var apiKey = await _apiKeyRepository.GetApiKeyByIdAsync(id, User);
+                if (apiKey != null) return Ok(apiKey);
+                _logger.LogWarning("API key with id {Id} not found for user.", id);
+                return NotFound();
 
-                return Ok(apiKey);
             }
             catch (Exception ex)
             {
@@ -71,23 +58,9 @@ namespace VideoCrypt.Image.Api.Controller
                 _logger.LogWarning("API key creation request is null.");
                 return BadRequest("API key data is null.");
             }
-
             try
             {
-                var user = await _userManager.GetUserAsync(User);
-                var apiKeyString = ApiKeyGenerator.GenerateApiKey(user.Id);
-                var timeNow = DateTime.UtcNow;
-                var apiKey = new ApiKey
-                {
-                    Key = apiKeyString,
-                    Name = key.Name,
-                    Description = key.Description,
-                    CreatedAt = timeNow,
-                    ExpireAt = key.ExpireAt ?? new DateTime(timeNow.Year,timeNow.Month+1,timeNow.Day),
-                    UserId = user.Id
-                };
-
-                await _apiKeyRepository.CreateApiKeyAsync(apiKey);
+                var apiKey = await _apiKeyRepository.CreateApiKeyAsync(key, User);
                 return CreatedAtAction(nameof(GetApiKey), new { id = apiKey.Id }, apiKey);
             }
             catch (Exception ex)
@@ -102,15 +75,13 @@ namespace VideoCrypt.Image.Api.Controller
         {
             try
             {
-                var user = await _userManager.GetUserAsync(User);
-                var apiKey = await _apiKeyRepository.GetApiKeyByIdAsync(id, user.Id);
+                var apiKey = await _apiKeyRepository.GetApiKeyByIdAsync(id, User);
                 if (apiKey == null)
                 {
-                    _logger.LogWarning("API key with id {Id} not found for user {UserId}", id, user.Id);
+                    _logger.LogWarning("API key with id {Id} not found for user.", id);
                     return NotFound();
                 }
 
-                apiKey.UserId = user.Id;
                 await _apiKeyRepository.DeleteApiKeyAsync(apiKey);
                 return Ok();
             }
@@ -120,13 +91,13 @@ namespace VideoCrypt.Image.Api.Controller
                 return StatusCode(500, "Internal server error");
             }
         }
+
         [HttpGet]
         public async Task<ActionResult<PaginatedList<ApiKey>>> GetApiKeys([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
-                var user = await _userManager.GetUserAsync(User);
-                var apiKeys = await _apiKeyRepository.GetApiKeysPaginatedAsync(user.Id, pageNumber, pageSize);
+                var apiKeys = await _apiKeyRepository.GetApiKeysPaginatedAsync(User, pageNumber, pageSize);
                 return Ok(apiKeys);
             }
             catch (Exception ex)

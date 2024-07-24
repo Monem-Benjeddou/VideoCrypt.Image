@@ -1,75 +1,109 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Dapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
-using VideoCrypt.Image.Data.Models;
+using VideoCrypt.Image.Api.Data;
+using VideoCrypt.Image.Api.Models;
 using VideoCrypt.Image.Data;
+using VideoCrypt.Image.Data.Models;
 
 namespace VideoCrypt.Image.Api.Repositories
 {
-    public class ApiKeyRepository : IApiKeyRepository
+    public class ApiKeyRepository(
+        ApplicationDbContext context,
+        ILogger<ApiKeyRepository> logger,
+        UserManager<IdentityUser> userManager)
+        : IApiKeyRepository
     {
-        private readonly ApplicationDbContext _context;
-        private readonly ILogger<ApiKeyRepository> _logger;
+        private readonly ApplicationDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
+        private readonly ILogger<ApiKeyRepository> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        private readonly UserManager<IdentityUser> _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
 
-        public ApiKeyRepository(ApplicationDbContext context, ILogger<ApiKeyRepository> logger)
+        public async Task<IEnumerable<ApiKey>> GetAllApiKeysAsync(ClaimsPrincipal userClaims)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
+            var user = await _userManager.GetUserAsync(userClaims);
+            if (user == null)
+            {
+                throw new UnauthorizedAccessException("User not found.");
+            }
 
-        public async Task<IEnumerable<ApiKey>> GetAllApiKeysAsync(string userId)
-        {
             using var connection = _context.CreateConnection();
             var sql = "SELECT id, key, name, description, created_at, expire_at FROM api_keys WHERE user_id = @UserId";
 
             try
             {
-                _logger.LogInformation("Fetching all API keys for user {UserId}", userId);
-                return await connection.QueryAsync<ApiKey>(sql, new { UserId = userId });
+                _logger.LogInformation("Fetching all API keys for user {UserId}", user.Id);
+                return await connection.QueryAsync<ApiKey>(sql, new { UserId = user.Id });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching API keys for user {UserId}", userId);
+                _logger.LogError(ex, "Error fetching API keys for user {UserId}", user.Id);
                 throw;
             }
         }
 
-        public async Task<ApiKey> GetApiKeyByIdAsync(int id, string userId)
+        public async Task<ApiKey> GetApiKeyByIdAsync(int id, ClaimsPrincipal userClaims)
         {
+            var user = await _userManager.GetUserAsync(userClaims);
+            if (user == null)
+            {
+                throw new UnauthorizedAccessException("User not found.");
+            }
+
             using var connection = _context.CreateConnection();
             var sql = "SELECT id, key, name, description, created_at, expire_at FROM api_keys WHERE id = @Id AND user_id = @UserId";
 
             try
             {
-                _logger.LogInformation("Fetching API key with ID {Id} for user {UserId}", id, userId);
-                return await connection.QuerySingleOrDefaultAsync<ApiKey>(sql, new { Id = id, UserId = userId });
+                _logger.LogInformation("Fetching API key with ID {Id} for user {UserId}", id, user.Id);
+                return await connection.QuerySingleOrDefaultAsync<ApiKey>(sql, new { Id = id, UserId = user.Id });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching API key with ID {Id} for user {UserId}", id, userId);
+                _logger.LogError(ex, "Error fetching API key with ID {Id} for user {UserId}", id, user.Id);
                 throw;
             }
         }
 
-        public async Task CreateApiKeyAsync(ApiKey apiKey)
+        public async Task<ApiKey> CreateApiKeyAsync(ApiKeyForCreation key, ClaimsPrincipal userClaims)
         {
-            using var connection = _context.CreateConnection();
-            var sql = @"INSERT INTO api_keys (key, name, description, created_at, expire_at, user_id) 
-                        VALUES (@Key, @Name, @Description, @CreatedAt, @ExpireAt, @UserId) 
-                        RETURNING id";
+            var user = await _userManager.GetUserAsync(userClaims);
+            if (user == null)
+            {
+                throw new UnauthorizedAccessException("User not found.");
+            }
 
             try
             {
+                var apiKeyString = ApiKeyGenerator.GenerateApiKey(user.Id);
+                var timeNow = DateTime.UtcNow;
+                var apiKey = new ApiKey
+                {
+                    Key = apiKeyString,
+                    Name = key.Name,
+                    Description = key.Description,
+                    CreatedAt = timeNow,
+                    ExpireAt = key.ExpireAt ?? new DateTime(timeNow.Year, timeNow.Month + 1, timeNow.Day),
+                    UserId = user.Id
+                };
+                using var connection = _context.CreateConnection();
+                var sql = @"INSERT INTO api_keys (key, name, description, created_at, expire_at, user_id) 
+                            VALUES (@Key, @Name, @Description, @CreatedAt, @ExpireAt, @UserId) 
+                            RETURNING id";
+
                 _logger.LogInformation("Creating a new API key for user {UserId}", apiKey.UserId);
                 var id = await connection.ExecuteScalarAsync<int>(sql, apiKey);
                 apiKey.Id = id;
-                _logger.LogInformation("New API key created with ID {Id} for user {UserId}", id, apiKey.UserId);
+                _logger.LogInformation("New API key created with ID {Id} ", id);
+                return apiKey;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating API key for user {UserId}", apiKey.UserId);
+                _logger.LogError(ex, "Error creating API key for user {UserId}", user.Id);
                 throw;
             }
         }
@@ -92,41 +126,36 @@ namespace VideoCrypt.Image.Api.Repositories
             }
         }
 
-        public async Task<PaginatedList<ApiKey>> GetApiKeysPaginatedAsync(string userId, int pageNumber, int pageSize)
+        public async Task<PaginatedList<ApiKey>> GetApiKeysPaginatedAsync(ClaimsPrincipal userClaims, int pageNumber, int pageSize)
         {
+            var user = await _userManager.GetUserAsync(userClaims);
+            if (user == null)
+            {
+                throw new UnauthorizedAccessException("User not found.");
+            }
+
             using var connection = _context.CreateConnection();
             var sql = @"SELECT id, key, name, description, created_at, expire_at
-                FROM api_keys
-                WHERE user_id = @UserId
-                ORDER BY id
-                OFFSET @Offset ROWS
-                FETCH NEXT @PageSize ROWS ONLY";
+                        FROM api_keys
+                        WHERE user_id = @UserId
+                        ORDER BY id
+                        OFFSET @Offset
+                        LIMIT @Limit";
 
             try
             {
-                _logger.LogInformation("Fetching paginated API keys for user {UserId}, page {PageNumber}, page size {PageSize}", userId, pageNumber, pageSize);
-
-                var offset = (pageNumber - 1) * pageSize;
-
-                var apiKeys = await connection.QueryAsync<ApiKey>(sql, new { UserId = userId, Offset = offset, PageSize = pageSize });
-
-                var totalRecords = await connection.ExecuteScalarAsync<int>(
-                    "SELECT COUNT(id) FROM api_keys WHERE user_id = @UserId", new { UserId = userId });
-
-                var totalPages = (int)Math.Ceiling(totalRecords / (double)pageSize);
-
-                _logger.LogInformation("Paginated API keys fetched successfully for user {UserId}, total pages {TotalPages}", userId, totalPages);
-
-                return new PaginatedList<ApiKey>
-                {
+                _logger.LogInformation("Fetching paginated API keys for user {UserId}", user.Id);
+                var apiKeys = await connection.QueryAsync<ApiKey>(sql, new { UserId = user.Id, Offset = (pageNumber - 1) * pageSize, Limit = pageSize });
+                var countSql = "SELECT COUNT(*) FROM api_keys WHERE user_id = @UserId";
+                var totalCount = await connection.ExecuteScalarAsync<int>(countSql, new { UserId = user.Id });
+                return new PaginatedList<ApiKey>(){
                     Items = apiKeys.ToList(),
-                    PageIndex = pageNumber,
-                    TotalPages = totalPages
-                };
+                    TotalPages = totalCount,
+                    PageIndex = pageNumber};
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching paginated API keys for user {UserId}, page {PageNumber}, page size {PageSize}", userId, pageNumber, pageSize);
+                _logger.LogError(ex, "Error fetching paginated API keys for user {UserId}", user.Id);
                 throw;
             }
         }
