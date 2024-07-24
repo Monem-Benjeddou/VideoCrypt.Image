@@ -36,6 +36,24 @@
         font-size: 14px;
         background-color: #fff;
     }
+    .modal-body .share-link-input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ced4da;
+        border-radius: 0 5px 5px 0; /* Rounded corners on the right side */
+        font-size: 14px;
+        background-color: #fff;
+    }
+
+    .copy {
+        border: none;
+        border-radius: 5px 0 0 5px; /* Rounded corners on the left side */
+        background: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="15" aria-hidden="true"><path fill="%23fff" fill-rule="evenodd" d="M4 12h4v1H4v-1zm5-6H4v1h5V6zm2 3V7l-3 3 3 3v-2h5V9h-5zM6.5 8H4v1h2.5V8zM4 11h2.5v-1H4v1zm9 1h1v2c-.02.28-.11.52-.3.7-.19.18-.42.28-.7.3H3c-.55 0-1-.45-1-1V3c0-.55.45-1 1-1h3c0-1.11.89-2 2-2 1.11 0 2 .89 2 2h3c.55 0 1 .45 1 1v5h-1V5H3v9h10v-2zM4 4h8c0-.55-.45-1-1-1h-1c-.55 0-1-.45-1-1s-.45-1-1-1-1 .45-1 1-.45 1-1 1H5c-.55 0-1 .45-1 1z"/></svg>') 50% no-repeat;
+        height: 43px;
+        width: 38px; 
+        cursor: pointer;
+    }
+
 </style>
     <div class="container-fluid tm-container-content tm-mt-60">
         <div class="row mb-4">
@@ -124,8 +142,9 @@
                         <p id="imageExtension"></p>
                         <div class="input-group mb-3">
                             <input id="share-link" type="text" value="" class="form-control share-link-input" readonly>
-                            <button class="btn btn-secondary" id="copyLinkButton">Copy URL</button>
+                            <button class="btn btn-secondary copy" id="copyLinkButton"></button>
                         </div>
+
                     </div>
                     <div class="modal-footer">
                         <a id="downloadLink" href="" class="btn btn-primary" download>Download</a>

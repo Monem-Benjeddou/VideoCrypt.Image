@@ -5,7 +5,6 @@ Dropzone.options.myGreatDropzone = {
     acceptedFiles: "image/jpeg,image/png,image/gif,image/bmp,image/tiff,image/svg+xml",
     init: function () {
         let myDropzone = this;
-
         $.getJSON('./?handler=ListFolderContents').done(function (data) {
             if (data !== null && data.length > 0) {
                 $.each(data, function (index, item) {
@@ -16,11 +15,10 @@ Dropzone.options.myGreatDropzone = {
                             ? ''
                             : filename.substring(lastDotIndex + 1);
                     }
-
                     let extension = getFileExtension(item.name);
                     let fileName = generateQuickGuid() + (extension ? '.' + extension : '');
                     let mockFile = {
-                        name: fileName,
+                        name: item.file,
                         size: item.fileSize,
                         filePath: item.filePath
                     };
