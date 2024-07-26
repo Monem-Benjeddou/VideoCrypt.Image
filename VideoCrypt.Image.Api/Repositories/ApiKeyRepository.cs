@@ -79,8 +79,8 @@ namespace VideoCrypt.Image.Api.Repositories
 
             try
             {
-                var apiKeyString = ApiKeyGenerator.GenerateApiKey(user.Id);
                 var timeNow = DateTime.UtcNow;
+                var apiKeyString = ApiKeyGenerator.GenerateApiKey(user.Id,timeNow);
                 var apiKey = new ApiKey
                 {
                     Key = apiKeyString,
