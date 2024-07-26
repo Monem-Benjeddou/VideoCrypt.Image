@@ -25,5 +25,4 @@ COPY --from=publish /app/publish .
 COPY ./clear_cache.sh /app/clear_cache.sh
 RUN chmod +x /app/clear_cache.sh
 RUN mkdir -p /path/to/shared/cache/directory
-
 ENTRYPOINT ["dotnet", "VideoCrypt.Image.CashingApp.dll"]
