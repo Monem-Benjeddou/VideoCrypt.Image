@@ -8,7 +8,6 @@ namespace VideoCrypt.Image.Server.Dapper
     {
         public static void ConfigureTypeMappings()
         {
-            // Mapping for ImageMetadata
             SqlMapper.SetTypeMap(
                 typeof(ImageMetadata),
                 new CustomPropertyTypeMap(
@@ -23,7 +22,6 @@ namespace VideoCrypt.Image.Server.Dapper
                                 .Replace("id", "Id"));
                     }));
 
-            // Mapping for ApiKey
             SqlMapper.SetTypeMap(
                 typeof(ApiKey),
                 new CustomPropertyTypeMap(
