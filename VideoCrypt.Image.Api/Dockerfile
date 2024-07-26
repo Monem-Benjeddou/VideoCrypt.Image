@@ -22,6 +22,4 @@ RUN dotnet publish "VideoCrypt.Image.Api.csproj" -c Release -o /app/publish /p:U
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-COPY ./clear_cache.sh /app/clear_cache.sh
-RUN chmod +x /app/clear_cache.sh
 ENTRYPOINT ["dotnet", "VideoCrypt.Image.Api.dll"]

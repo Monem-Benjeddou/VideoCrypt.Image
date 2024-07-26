@@ -25,6 +25,7 @@ services:
     volumes:
       - videocryptimage_cache_volume:/cache
     network_mode: host
+    command: /app/clear_cache.sh
 
   videocrypt-main:
     build:
@@ -33,7 +34,6 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     network_mode: host
-
   nginx:
     build:
       context: .
