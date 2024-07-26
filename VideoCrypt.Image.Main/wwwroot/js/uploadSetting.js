@@ -18,7 +18,7 @@ Dropzone.options.myGreatDropzone = {
                     let extension = getFileExtension(item.name);
                     let fileName = generateQuickGuid() + (extension ? '.' + extension : '');
                     let mockFile = {
-                        name: item.file,
+                        name: fileName,
                         size: item.fileSize,
                         filePath: item.filePath
                     };

@@ -16,6 +16,7 @@ builder.Services.AddCors(options =>
         {
             //http://51.38.80.38
             builder.WithOrigins("http://51.38.80.38:8080")
+                .WithOrigins("https://localhost:8080")
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials();
@@ -23,10 +24,8 @@ builder.Services.AddCors(options =>
 });
 var accessKey = Environment.GetEnvironmentVariable("access_key") ?? throw new Exception("Access key not found");
 
-builder.Services.AddHttpClient("AuthorizedClient", client =>
-{
-    client.DefaultRequestHeaders.Add("AccessKey", accessKey);
-});
+builder.Services.AddHttpClient("AuthorizedClient",
+    client => { client.DefaultRequestHeaders.Add("AccessKey", accessKey); });
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("image_db")));
