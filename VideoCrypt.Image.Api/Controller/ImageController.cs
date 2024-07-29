@@ -96,7 +96,7 @@ namespace VideoCrypt.Image.Api.Controller
         }
 
         [HttpGet("list")]
-        public async Task<IActionResult> ListFiles(int page = 1, int pageSize = 10)
+        public async Task<IActionResult> ListFiles(int page = 1, int pageSize = 10, string searchQuery ="")
         {
             try
             {

@@ -8,13 +8,13 @@ Dropzone.options.myGreatDropzone = {
         $.getJSON('./?handler=ListFolderContents').done(function (data) {
             if (data !== null && data.length > 0) {
                 $.each(data, function (index, item) {
-                    // Function to extract the file extension
                     function getFileExtension(filename) {
                         const lastDotIndex = filename.lastIndexOf('.');
                         return (lastDotIndex === -1 || lastDotIndex === filename.length - 1)
                             ? ''
                             : filename.substring(lastDotIndex + 1);
                     }
+
                     let extension = getFileExtension(item.name);
                     let fileName = generateQuickGuid() + (extension ? '.' + extension : '');
                     let mockFile = {
@@ -40,21 +40,23 @@ Dropzone.options.myGreatDropzone = {
             updatePreviewTemplate(file, file.name);
         });
         myDropzone.on("removedfile", function (file) {
-            let dropZone =document.getElementById('my-great-dropzone');
-            if(dropZone){
+            let dropZone = document.getElementById('my-great-dropzone');
+            if (dropZone) {
                 dropZone.style.removeProperty('border')
             }
             let shareLink = document.querySelector("dz-share-link");
-            if(shareLink){
+            if (shareLink) {
                 shareLink.innerHTML = '';
             }
         });
     }
 };
+
 function generateQuickGuid() {
     return Math.random().toString(36).substring(2, 15) +
         Math.random().toString(36).substring(2, 15);
 }
+
 function updatePreviewTemplate(file, filePath) {
     let previewElement = file.previewElement;
     let progressBar = previewElement.querySelector(".dz-progress")
@@ -82,7 +84,7 @@ function updatePreviewTemplate(file, filePath) {
 }
 
 function copyToClipboard(event, text) {
-    event.preventDefault();  
+    event.preventDefault();
     navigator.clipboard.writeText(text)
         .then(() => {
             alert('Link copied to clipboard!');

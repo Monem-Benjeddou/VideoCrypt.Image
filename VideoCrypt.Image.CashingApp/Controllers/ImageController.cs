@@ -44,13 +44,26 @@ namespace VideoCrypt.Image.CashingApp.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-
-        [HttpGet("list")]
-        public async Task<IActionResult> ListFiles(int page = 1, int pageSize = 10)
+        [HttpPost("purge")]
+        public async Task<IActionResult> PurgeCache()
         {
             try
             {
-                var paginatedList = await _imageRepository.ListImagesAsync(GetUserId(), page, pageSize);
+                var result = await _imageRepository.PurgeCacheAsync(GetUserId());
+                return result ? Ok("Cache purged successfully.") : StatusCode(500, "Failed to purge cache.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("list")]
+        public async Task<IActionResult> ListFiles(int page = 1, int pageSize = 10, string searchQuery ="")
+        {
+            try
+            {
+                var paginatedList = await _imageRepository.ListImagesAsync(GetUserId(), page, pageSize,searchQuery);
                 return Ok(paginatedList);
             }
             catch (Exception ex)

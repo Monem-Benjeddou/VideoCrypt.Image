@@ -4,14 +4,9 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace VideoCrypt.Image.Main.Authentication;
 
-public class AuthenticationService
+public class AuthenticationService(HttpClient httpClient)
 {
-    private readonly HttpClient _httpClient;
-
-    public AuthenticationService(HttpClient httpClient)
-    {
-        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-    }
+    private readonly HttpClient _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
 
     public async Task<string> AuthenticateAsync(string email, string password)
     {

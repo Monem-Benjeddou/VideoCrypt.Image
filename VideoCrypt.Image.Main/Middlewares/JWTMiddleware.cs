@@ -6,17 +6,8 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace VideoCrypt.Image.Main.Middlewares;
 
-public class JWTMiddleware  
-{  
-    private readonly RequestDelegate _next;  
-    private readonly IConfiguration _configuration;   
-
-    public JWTMiddleware(RequestDelegate next, IConfiguration configuration )  
-    {  
-        _next = next;  
-        _configuration = configuration;   
-    }  
-
+public class JwtMiddleware(RequestDelegate next, IConfiguration configuration)
+{
     public async Task Invoke(HttpContext context)  
     {  
         var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();  
@@ -24,7 +15,7 @@ public class JWTMiddleware
         if (token != null)  
             attachAccountToContext(context, token);  
 
-        await _next(context);  
+        await next(context);  
     }  
 
     private void attachAccountToContext(HttpContext context, string token)  
@@ -32,7 +23,7 @@ public class JWTMiddleware
         try  
         {  
             var tokenHandler = new JwtSecurityTokenHandler();  
-            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);  
+            var key = Encoding.ASCII.GetBytes(configuration["Jwt:Key"]);  
             tokenHandler.ValidateToken(token, new TokenValidationParameters  
             {  
                 ValidateIssuerSigningKey = true,  
@@ -57,18 +48,11 @@ public class JWTMiddleware
             var userIdentity = new ClaimsIdentity(userClaims, "User Identity");  
 
             var userPrincipal = new ClaimsPrincipal(new[] { userIdentity });  
-               
-            // attach account to context on successful jwt validation   
-            //var user = new MVCWebApplication.Data.User();  
-            //user.UserName = "aa@hotmail.com";  
-            //context.Items["User"] = user;  
 
             context.SignInAsync(userPrincipal);  
         }  
         catch (Exception ex)  
         {  
-            // do nothing if jwt validation fails  
-            // account is not attached to context so request won't have access to secure routes  
             throw new Exception(ex.Message);  
         }  
     }  

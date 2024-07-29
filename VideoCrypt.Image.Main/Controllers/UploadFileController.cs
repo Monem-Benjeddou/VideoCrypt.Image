@@ -6,7 +6,7 @@ namespace VideoCrypt.Image.Main.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("[controller]")]
+[Route("[controller]")] 
 public class UploadFileController(IFileRepository fileRepository) : Controller
 {
     private readonly string[] _permittedExtensions =

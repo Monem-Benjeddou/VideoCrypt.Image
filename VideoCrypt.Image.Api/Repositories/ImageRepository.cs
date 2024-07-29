@@ -186,12 +186,12 @@ namespace VideoCrypt.Image.Api.Repositories
             }
         }
 
-        public async Task<PaginatedList<string>> ListImagesAsync(int page, int pageSize, ClaimsPrincipal user)
+        public async Task<PaginatedList<string>> ListImagesAsync(int page, int pageSize,string searchQuery, ClaimsPrincipal user)
         {
             try
             {
                 using var client = await CreateAuthorizedClient(user);
-                var response = await client.GetAsync($"{_baseUrl}/api/Image/list?page={page}&pageSize={pageSize}");
+                var response = await client.GetAsync($"{_baseUrl}/api/Image/list?page={page}&pageSize={pageSize}&searchQuery={searchQuery}");
                 var options = new JsonSerializerOptions
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
