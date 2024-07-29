@@ -100,7 +100,7 @@ namespace VideoCrypt.Image.Api.Controller
         {
             try
             {
-                var files = await _imageRepository.ListImagesAsync(page, pageSize, User);
+                var files = await _imageRepository.ListImagesAsync(page, pageSize, searchQuery ,User);
                 return Ok(files);
             }
             catch (Exception ex)
