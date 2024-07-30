@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  videocrypt-api:
+    build:
+      context: ..
+      dockerfile: VideoCrypt.Image.Api/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - access_key=Qqt3KMXNlK4iCKqPhgEd
+      - secret_key=Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6
+      - service_url=http://10.13.111.3
+      - api_secrete_key=GoCdqzvvbJWyy2F3J3mm/2cXIufm5+KEeeeGRLiHg8w=
+    network_mode: host
+
+  videocrypt-caching-app:
+    build:
+      context: ..
+      dockerfile: VideoCrypt.Image.CashingApp/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - access_key=Qqt3KMXNlK4iCKqPhgEd
+      - secret_key=Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6
+      - service_url=http://10.13.111.3
+    volumes:
+      - videocryptimage_cache_volume:/cache
+    network_mode: host
+    command: /app/clear_cache.sh
+
+  videocrypt-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    network_mode: host
+  nginx:
+    build:
+      context: .
+      dockerfile: NginxDockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - videocrypt-api
+      - videocrypt-caching-app
+      - videocrypt-dashboard
+
+volumes:
+  videocryptimage_cache_volume:
+    driver: local

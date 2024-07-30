@@ -1,0 +1,38 @@
+@model ApiKeyForCreation
+
+<div class="modal fade" id="basicModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel1">Add API Key</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form asp-action="CreateApiKey" method="post">
+                    <div class="row">
+                        <div class="col mb-3">
+                            <label for="nameBasic" class="form-label">Name</label>
+                            <input type="text" id="nameBasic" class="form-control" placeholder="Enter Name" asp-for="Name">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col mb-3">
+                            <label for="descriptionBasic" class="form-label">Description</label>
+                            <textarea id="descriptionBasic" class="form-control" placeholder="Enter Description" asp-for="Description"></textarea>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col mb-3">
+                            <label for="expireAtBasic" class="form-label">Expiration Date</label>
+                            <input type="date" id="expireAtBasic" class="form-control" asp-for="ExpireAt">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

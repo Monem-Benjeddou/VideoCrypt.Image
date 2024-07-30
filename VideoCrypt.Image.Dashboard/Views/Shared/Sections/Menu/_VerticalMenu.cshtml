@@ -1,0 +1,56 @@
+@{
+  TempData.Keep();
+  string? currentPage = ViewContext.HttpContext.Request.Path;
+}
+
+<!-- Menu -->
+@* ! Do this simple *@
+<aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme" data-bg-class="bg-menu-theme" style="touch-action: none; user-select: none; -webkit-user-drag: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);">
+
+  @* ! Hide app brand if navbar-full *@
+  <div
+    class='app-brand demo @((@ViewData["navbarFull"] != null && Convert.ToBoolean(@ViewData["navbarFull"])) ? "d-xl-none" : "")'>
+    <a asp-controller="Home" asp-action="Index" class="app-brand-link">
+      <span class="app-brand-logo demo">
+        @await Html.PartialAsync("../_Partials/_Macros")
+      </span>
+      <span class="app-brand-text demo menu-text fw-bold ms-2">@TempData.Peek("appName")</span>
+    </a>
+    <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
+      <i class="bx bx-chevron-left bx-sm align-middle"></i>
+    </a>
+  </div>
+
+  <div class="menu-inner-shadow"></div>
+
+  @* ! Full version menu-items *@
+  <ul class="menu-inner py-1">
+    <!-- Dashboards -->
+    <li class='menu-item@(currentPage.EndsWith("/") || currentPage.StartsWith("/") ? " active open" : "")'>
+      <a href="javascript:void(0);" class="menu-link menu-toggle">
+        <i class="menu-icon tf-icons bx bx-home-circle"></i>
+        <div>Dashboards</div>
+        <div class="badge bg-danger rounded-pill ms-auto">5</div>
+      </a>
+      <ul class="menu-sub">
+        <li class='menu-item@(currentPage == "/FileUpload" ? " active" : "")'>
+          <a asp-controller="FileUpload" asp-action="Index" class="menu-link">
+            <div>File Upload</div>
+          </a>
+        </li>
+        <li class='menu-item@(currentPage == "/ApiKey" ? " active" : "")'>
+          <a asp-controller="ApiKey" asp-action="Index" class="menu-link">
+            <div>ApiKeys</div>
+          </a>
+        </li>
+        <li class='menu-item@(currentPage == "/Image" ? " active" : "")'>
+          <a asp-controller="Image" asp-action="Index" class="menu-link">
+            <div>Gallery</div>
+          </a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+
+</aside>
+<!-- / Menu -->

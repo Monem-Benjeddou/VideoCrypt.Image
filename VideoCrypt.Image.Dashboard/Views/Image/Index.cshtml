@@ -1,0 +1,86 @@
+@model PaginatedList<string>
+
+<div class="container-fluid tm-container-content tm-mt-60">
+    <div class="row mb-4">
+        <div class="align-self-start">
+            <h2 class="col-6 tm-text-primary">
+
+            <span class="text-muted fw-light">Image /</span> Dashboard
+            </h2>
+        </div>
+        <div class="col-6 d-flex justify-content-end align-items-center">
+
+            <h4 class="tm-text-primary">
+                Page @Model.PageIndex of @Model.TotalPages
+            </h4>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <form asp-action="Search" method="post" class="d-flex flex-row">
+                <input type="text" name="searchQuery" class="form-control mr-sm-2" placeholder="Search" value="@Model.SearchQuery"/>
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <ul class="list-group">
+                @if (Model.Items != null && Model.Items.Any())
+                {
+                    foreach (var imageUrl in Model.Items)
+                    {
+                        var uri = new Uri(imageUrl);
+                        var fileName = System.IO.Path.GetFileName(uri.LocalPath);
+                        var fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(fileName);
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="d-flex flex-row" style="overflow: hidden;">
+                                    <img src="@imageUrl" alt="@fileNameWithoutExtension" class="img-thumbnail" style="width: 50px; height: 50px; margin-right: 10px; border-radius: 5px;">
+                                    @fileNameWithoutExtension
+                                </span>
+                                <div >
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#imageModal" data-src="@imageUrl" data-title="@fileNameWithoutExtension">
+                                        View
+                                    </button>
+                                    <form method="post" asp-action="DeleteImage" style="display:inline;">
+                                        <input type="hidden" name="imageUrl" value="@imageUrl" />
+                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                    </form>
+                                    </div>
+                            </div>
+                        </li>
+                    }
+                }
+                else
+                {
+                    <li class="list-group-item text-center">No images found.</li>
+                }
+            </ul>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            @{
+                var previous = Model.PageIndex - 1;
+                var next = Model.PageIndex + 1;
+            }
+            <a class="btn btn-primary" href="@Url.Action("Index", new { page = previous, searchQuery = Model.SearchQuery })" @(Model.PageIndex == 1 ? "disabled" : "")>Previous Page</a>
+            <div class="pagination">
+                @for (var i = 1; i <= Model.TotalPages; i++)
+                {
+                    <a class="btn @(Model.PageIndex == i ? "btn-primary" : "btn-outline-primary")" href="@Url.Action("Index", new { page = i, searchQuery = Model.SearchQuery })">@i</a>
+                }
+            </div>
+            <a class="btn btn-primary" href="@Url.Action("Index", new { page = next, searchQuery = Model.SearchQuery })" @(Model.PageIndex == Model.TotalPages ? "disabled" : "")>Next Page</a>
+        </div>
+    </div>
+</div>
+
+@Html.Partial("ImageModal")
+
+<script>
+</script>
