@@ -27,4 +27,10 @@ public class ApiKeyController(IApiKeyRepository apiKeyRepository) : Controller
         }
         return View(apiKeyForCreation);
     }
+    [HttpPost]
+    public async Task<IActionResult> DeleteApiKey(int id)
+    {
+        var isDeleted = await _apiKeyRepository.DeleteApiKeyAsync(id);
+        return Ok(isDeleted);
+    }
 }

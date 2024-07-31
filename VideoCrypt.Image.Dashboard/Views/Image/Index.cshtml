@@ -18,47 +18,20 @@
 
     <div class="row mb-4">
         <div class="col-12">
-            <form asp-action="Search" method="post" class="d-flex flex-row">
-                <input type="text" name="searchQuery" class="form-control mr-sm-2" placeholder="Search" value="@Model.SearchQuery"/>
-                <button type="submit" class="btn btn-primary">Search</button>
+
+            <form id="searchForm" asp-action="Index" method="get" class="d-flex flex-row">
+                <input type="text" id="searchQuery" name="searchQuery" class="form-control mr-sm-2"
+                       placeholder="Search" value="@Model.SearchQuery" />
+                <button type="submit" class="btn btn-primary" style="display: none;">Search</button>
             </form>
+
+
         </div>
     </div>
 
     <div class="row">
         <div class="col-12">
-            <ul class="list-group">
-                @if (Model.Items != null && Model.Items.Any())
-                {
-                    foreach (var imageUrl in Model.Items)
-                    {
-                        var uri = new Uri(imageUrl);
-                        var fileName = System.IO.Path.GetFileName(uri.LocalPath);
-                        var fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(fileName);
-                        <li class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="d-flex flex-row" style="overflow: hidden;">
-                                    <img src="@imageUrl" alt="@fileNameWithoutExtension" class="img-thumbnail" style="width: 50px; height: 50px; margin-right: 10px; border-radius: 5px;">
-                                    @fileNameWithoutExtension
-                                </span>
-                                <div >
-                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#imageModal" data-src="@imageUrl" data-title="@fileNameWithoutExtension">
-                                        View
-                                    </button>
-                                    <form method="post" asp-action="DeleteImage" style="display:inline;">
-                                        <input type="hidden" name="imageUrl" value="@imageUrl" />
-                                        <button type="submit" class="btn btn-danger">Delete</button>
-                                    </form>
-                                    </div>
-                            </div>
-                        </li>
-                    }
-                }
-                else
-                {
-                    <li class="list-group-item text-center">No images found.</li>
-                }
-            </ul>
+            @Html.Partial("_ImageListPartial", Model)
         </div>
     </div>
 
@@ -79,8 +52,25 @@
         </div>
     </div>
 </div>
-
+@Html.Partial("_deleteModal")
 @Html.Partial("ImageModal")
 
 <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var deleteModal = document.getElementById('deleteModal');
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var imageUrl = button.getAttribute('data-url');
+            var input = deleteModal.querySelector('#imageUrl');
+            input.value = imageUrl;
+        });
+    });
+    document.addEventListener('DOMContentLoaded', function () {
+        var searchQueryInput = document.getElementById('searchQuery');
+        var searchForm = document.getElementById('searchForm');
+
+        searchQueryInput.addEventListener('input', function () {
+            searchForm.submit();
+        });
+    });
 </script>

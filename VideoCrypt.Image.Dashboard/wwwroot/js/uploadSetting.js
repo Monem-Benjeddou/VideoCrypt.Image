@@ -3,25 +3,21 @@ Dropzone.options.myGreatDropzone = {
     paramName: "file",
     maxFiles: 1,
     acceptedFiles: "image/jpeg,image/png,image/gif,image/bmp,image/tiff,image/svg+xml",
+    renameFilename: function (filename) {
+        return generateFileNameWithExtension(filename);
+    },
     init: function () {
         let myDropzone = this;
+
         $.getJSON('./?handler=ListFolderContents').done(function (data) {
             if (data !== null && data.length > 0) {
                 $.each(data, function (index, item) {
-                    function getFileExtension(filename) {
-                        const lastDotIndex = filename.lastIndexOf('.');
-                        return (lastDotIndex === -1 || lastDotIndex === filename.length - 1)
-                            ? ''
-                            : filename.substring(lastDotIndex + 1);
-                    }
-
-                    let extension = getFileExtension(item.name);
-                    let fileName = generateQuickGuid() + (extension ? '.' + extension : '');
                     let mockFile = {
-                        name: fileName,
+                        name: item.name,
                         size: item.fileSize,
                         filePath: item.filePath
                     };
+
                     myDropzone.emit("addedfile", mockFile);
                     myDropzone.emit("thumbnail", mockFile, item.filePath);
                     myDropzone.emit("complete", mockFile);
@@ -39,10 +35,11 @@ Dropzone.options.myGreatDropzone = {
         myDropzone.on("success", function (file, response) {
             updatePreviewTemplate(file, file.name);
         });
+
         myDropzone.on("removedfile", function (file) {
             let dropZone = document.getElementById('my-great-dropzone');
             if (dropZone) {
-                dropZone.style.removeProperty('border')
+                dropZone.style.removeProperty('border');
             }
             let shareLink = document.querySelector("dz-share-link");
             if (shareLink) {
@@ -52,14 +49,9 @@ Dropzone.options.myGreatDropzone = {
     }
 };
 
-function generateQuickGuid() {
-    return Math.random().toString(36).substring(2, 15) +
-        Math.random().toString(36).substring(2, 15);
-}
-
 function updatePreviewTemplate(file, filePath) {
     let previewElement = file.previewElement;
-    let progressBar = previewElement.querySelector(".dz-progress")
+    let progressBar = previewElement.querySelector(".dz-progress");
     if (progressBar) {
         progressBar.remove();
     }
@@ -67,7 +59,7 @@ function updatePreviewTemplate(file, filePath) {
         let shareLinkInput = previewElement.querySelector('.share-link-input');
         let copyButton = previewElement.querySelector('.btn-copy');
 
-        fetch(`/Image/GenerateShareLink/${encodeURIComponent(file.name)}`)
+        fetch(`/Image/GenerateShareLink/${encodeURIComponent(file.upload.filename)}`)
             .then(response => response.json())
             .then(data => {
                 if (shareLinkInput) {
@@ -92,4 +84,23 @@ function copyToClipboard(event, text) {
         .catch(err => {
             console.error('Failed to copy text: ', err);
         });
+}
+
+function generateFileNameWithExtension(originalName) {
+    // Function to extract the file extension
+    function getFileExtension(filename) {
+        const lastDotIndex = filename.lastIndexOf('.');
+        return (lastDotIndex === -1 || lastDotIndex === filename.length - 1)
+            ? ''
+            : filename.substring(lastDotIndex + 1);
+    }
+
+    // Generate a unique GUID
+    function generateQuickGuid() {
+        return Math.random().toString(36).substring(2, 15) +
+            Math.random().toString(36).substring(2, 15);
+    }
+
+    let extension = getFileExtension(originalName);
+    return generateQuickGuid() + (extension ? '.' + extension : '');
 }

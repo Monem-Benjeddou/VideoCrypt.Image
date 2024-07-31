@@ -33,30 +33,15 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
         };
         switch (exception)
         {
-            case ApplicationException ex:
-                if (ex.Message.Contains("Invalid Token"))
-                {
-                    response.StatusCode = (int)HttpStatusCode.Forbidden;
-                    errorResponse.Message = ex.Message;
-                    break;
-                }
-
-                response.StatusCode = (int)HttpStatusCode.BadRequest;
-                errorResponse.Message = ex.Message;
-                break;
             case UnauthorizedAccessException ex:
                 logger.LogError(exception.Message);
                 // Redirect to the logout page
                 context.Response.Redirect("/Account/Logout");
                 break;
             default:
-                response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                errorResponse.Message = "Internal server error!";
                 break;
         }
 
         logger.LogError(exception.Message);
-        var result = JsonSerializer.Serialize(errorResponse);
-        await context.Response.WriteAsync(result);
     }
 }

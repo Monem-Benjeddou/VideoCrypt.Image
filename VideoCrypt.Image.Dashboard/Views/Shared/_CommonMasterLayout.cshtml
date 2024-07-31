@@ -2,14 +2,16 @@
 
 <!DOCTYPE html>
 <html lang="en"
-  class='light-style layout-menu-fixed'
-  data-theme="theme-default" data-assets-path='@((httpContextAccessor.HttpContext?.Request.PathBase ?? "") + "/")'
-  data-framework="aspnetcore-mvc"
-  data-template='vertical-menu-aspnet-core-mvc-template-free'>
+      dir="ltr"
+      class="light-style layout-navbar-fixed layout-compact layout-menu-fixed"
+      data-theme="theme-default" 
+      data-assets-path='@((httpContextAccessor.HttpContext?.Request.PathBase ?? "") + "/")'
+      data-framework="aspnetcore-mvc" data-template="vertical-menu-template">
 
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+  <meta name="viewport" 
+        content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
   @{
         string title = ViewData["title"] as string ?? "";

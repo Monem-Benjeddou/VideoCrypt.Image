@@ -63,7 +63,14 @@ namespace VideoCrypt.Image.Api.Repositories
             }
 
             using var connection = _context.CreateConnection();
-            var sql = "SELECT id, key, name, description, created_at, expire_at FROM api_keys WHERE id = @Id AND user_id = @UserId";
+            var sql = "SELECT id as Id," +
+                      " key as Key,  name as Name," +
+                      " description as Description, " +
+                      "created_at as CreatedAt, " +
+                      "expire_at as ExpireAt," +
+                      "user_id as UserId " +
+                      " FROM api_keys " +
+                      "WHERE id = @Id AND user_id = @UserId";
 
             try
             {

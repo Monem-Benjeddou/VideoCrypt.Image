@@ -25,6 +25,7 @@
                 <th>Name</th>
                 <th>Description</th>
                 <th>Created At</th>
+                <th>Action</th>
             </tr>
             </thead>
             <tbody class="table-border-bottom-0">
@@ -36,6 +37,13 @@
                     <td>@item.Name</td>
                     <td>@item.Description</td>
                     <td>@item.CreatedAt</td>
+                    <td>                     
+                        <button type="button"
+                                class="btn btn-danger" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#deleteModal"
+                                data-url="@item.Id">Delete</button>
+                    </td>
                 </tr>
             }
             </tbody>
@@ -46,12 +54,12 @@
 <div class="mt-3 d-flex flex-row-reverse">
     @if (Model.HasNextPage)
     {
-    <a asp-action="Index" asp-route-pageIndex="@(Model.PageIndex + 1)">Next</a>
+        <a asp-action="Index" asp-route-pageIndex="@(Model.PageIndex + 1)">Next</a>
     }
     
     @if (Model.HasPreviousPage)
     {
-    <a asp-action="Index" asp-route-pageIndex="@(Model.PageIndex - 1)">Previous</a>
+        <a asp-action="Index" asp-route-pageIndex="@(Model.PageIndex - 1)">Previous</a>
     }
     
     Page @Model.PageIndex of @Model.TotalPages
@@ -60,4 +68,16 @@
 
 
 </div>
+@Html.Partial("_deleteModal")
 @Html.Partial("_AddApiKeyModal", new VideoCrypt.Image.Dashboard.Models.ApiKeyForCreation())
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var deleteModal = document.getElementById('deleteModal');
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var apiKeyId = button.getAttribute('data-url');
+            var input = deleteModal.querySelector('#apiKeyId');
+            input.value = apiKeyId;
+        });
+    });
+</script>
