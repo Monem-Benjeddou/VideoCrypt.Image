@@ -293,7 +293,7 @@
     position: relative;
     display: inline-block;
     vertical-align: top;
-    margin: 16px;
+    margin: 2px;
     min-height: 100px
 }
 
@@ -327,7 +327,7 @@
     transition: opacity 0.2s linear
 }
 
-.dropzone .dz-preview .dz-remove {
+.dropzone .dz-image-preview .dz-remove {
     font-size: 14px;
     text-align: center;
     display: block;
