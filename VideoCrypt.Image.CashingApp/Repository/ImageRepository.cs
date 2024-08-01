@@ -19,14 +19,21 @@ namespace VideoCrypt.Image.CashingApp.Repository
         private readonly ApplicationDbContext _context;
         private readonly AmazonS3Client _s3Client;
         private readonly ILogger<ImageRepository> _logger;
-        private const string InsertSql = @"INSERT INTO image_metadata (file_name, cached_file_path, url, created_at, user_id) VALUES (@FileName, @CachedFilePath, @Url, @CreatedAt, @UserId)";
-        private const string SelectByNameSql = @"SELECT * FROM image_metadata WHERE file_name = @FileName AND user_id = @UserId";
+
+        private const string InsertSql =
+            @"INSERT INTO image_metadata (file_name, cached_file_path, url, created_at, user_id) VALUES (@FileName, @CachedFilePath, @Url, @CreatedAt, @UserId)";
+
+        private const string SelectByNameSql =
+            @"SELECT * FROM image_metadata WHERE file_name = @FileName AND user_id = @UserId";
 
         public ImageRepository(ApplicationDbContext context, ILogger<ImageRepository> logger)
         {
-            _secretKey = Environment.GetEnvironmentVariable("secret_key") ?? throw new Exception("Secret key not found");
-            _accessKey = Environment.GetEnvironmentVariable("access_key") ?? throw new Exception("Access key not found");
-            _serviceUrl = Environment.GetEnvironmentVariable("service_url") ?? throw new Exception("Service url not found");
+            _secretKey = Environment.GetEnvironmentVariable("secret_key") ??
+                         throw new Exception("Secret key not found");
+            _accessKey = Environment.GetEnvironmentVariable("access_key") ??
+                         throw new Exception("Access key not found");
+            _serviceUrl = Environment.GetEnvironmentVariable("service_url") ??
+                          throw new Exception("Service url not found");
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -40,18 +47,19 @@ namespace VideoCrypt.Image.CashingApp.Repository
             _s3Client = new AmazonS3Client(credentials, config);
         }
 
-        public async Task<string> GetSharedFileUrlAsync(string fileName, string userId, int height = 0,int width = 0, ImageModificationType type=ImageModificationType.Resize )
+        public async Task<string> GetSharedFileUrlAsync(string fileName, string userId, int height = 0, int width = 0,
+            ImageModificationType type = ImageModificationType.Resize)
         {
             _logger.LogInformation($"Attempting to retrieve URL for file: {fileName} for user: {userId}");
             var modifiedName = "";
             if (height != 0 && width != 0)
                 modifiedName = GenerateModifiedFileName(fileName, width, height, type);
-            
+
             using (var connection = _context.CreateConnection())
             {
-                var searchedName = string.IsNullOrEmpty(modifiedName) ? fileName : modifiedName; 
-                var cachedImage = 
-                    await connection.QueryFirstOrDefaultAsync<ImageMetadata>(SelectByNameSql, 
+                var searchedName = string.IsNullOrEmpty(modifiedName) ? fileName : modifiedName;
+                var cachedImage =
+                    await connection.QueryFirstOrDefaultAsync<ImageMetadata>(SelectByNameSql,
                         new { FileName = searchedName, UserId = userId });
 
                 if (cachedImage != null)
@@ -111,115 +119,121 @@ namespace VideoCrypt.Image.CashingApp.Repository
             }
         }
 
-public async Task<PaginatedList<string>> ListImagesAsync(string userId, int page, int pageSize, string searchQuery)
-{
-    try
-    {
-        _logger.LogInformation($"Listing images for user: {userId}, Page: {page}, PageSize: {pageSize}, SearchQuery: {searchQuery}");
-
-        var userBucket = await GetOrCreateUserBucketAsync(userId);
-        var request = new ListObjectsV2Request
+        public async Task<PaginatedList<string>> ListImagesAsync(string userId, int page, int pageSize,
+            string searchQuery)
         {
-            BucketName = userBucket
-        };
-
-        var response = await _s3Client.ListObjectsV2Async(request);
-
-        if (response.HttpStatusCode != HttpStatusCode.OK)
-        {
-            _logger.LogError($"Error listing files: {response.HttpStatusCode}");
-            throw new Exception($"Error listing files: {response.HttpStatusCode}");
-        }
-
-        var filteredObjects = response.S3Objects
-            .Where(x => string.IsNullOrEmpty(searchQuery) || x.Key.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
-            .OrderBy(x => x.LastModified)
-            .ToList();
-
-        var totalCount = filteredObjects.Count;
-        _logger.LogInformation($"Total files in bucket matching query: {totalCount}");
-
-        List<string> fileList;
-        var cacheDirectory = Path.Combine("/app/cache", userId);
-
-        EnsureCacheDirectoryExists(cacheDirectory);
-
-        var imageMetadataList = new List<ImageMetadata>();
-
-        using (var connection = _context.CreateConnection())
-        {
-            var objects = filteredObjects
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Distinct()
-                .ToList();
-
-            foreach (var s3Object in objects)
+            try
             {
-                _logger.LogInformation($"Processing file: {s3Object.Key}");
+                _logger.LogInformation(
+                    $"Listing images for user: {userId}, Page: {page}, PageSize: {pageSize}, SearchQuery: {searchQuery}");
 
-                var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(SelectByNameSql,
-                    new { FileName = s3Object.Key, UserId = userId });
-
-                if (cachedImage != null)
+                var userBucket = await GetOrCreateUserBucketAsync(userId);
+                var request = new ListObjectsV2Request
                 {
-                    _logger.LogInformation($"Found cached metadata for file: {s3Object.Key}");
-                    imageMetadataList.Add(cachedImage);
-                }
-                else
+                    BucketName = userBucket,
+                    
+                };
+
+                var response = await _s3Client.ListObjectsV2Async(request);
+
+                if (response.HttpStatusCode != HttpStatusCode.OK)
                 {
-                    var cacheFilePath = Path.Combine(cacheDirectory, s3Object.Key);
-
-                    if (!File.Exists(cacheFilePath))
-                    {
-                        _logger.LogInformation($"Downloading and caching file: {s3Object.Key}");
-                        var fileBytes = await DownloadFileAsync(s3Object.Key, userBucket);
-                        await File.WriteAllBytesAsync(cacheFilePath, fileBytes);
-                    }
-                    else
-                    {
-                        _logger.LogInformation($"File already cached: {s3Object.Key}");
-                    }
-
-                    var url = GenerateCachedFileUrl(s3Object.Key, userId);
-
-                    var newImageMetadata = new ImageMetadata
-                    {
-                        FileName = s3Object.Key,
-                        CachedFilePath = cacheFilePath,
-                        Url = url,
-                        CreatedAt = DateTime.UtcNow,
-                        UserId = userId
-                    };
-
-                    await connection.ExecuteAsync(InsertSql, newImageMetadata);
-
-                    imageMetadataList.Add(newImageMetadata);
+                    _logger.LogError($"Error listing files: {response.HttpStatusCode}");
+                    throw new Exception($"Error listing files: {response.HttpStatusCode}");
                 }
+
+                var filteredObjects = response.S3Objects
+                    .Where(x => string.IsNullOrEmpty(searchQuery) ||
+                            x.Key.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+                    .OrderByDescending(x => x.LastModified)
+                    .ToList();
+
+                var totalCount = filteredObjects.Count;
+                _logger.LogInformation($"Total files in bucket matching query: {totalCount}");
+
+                List<string> fileList;
+                var cacheDirectory = Path.Combine("/app/cache", userId);
+
+                EnsureCacheDirectoryExists(cacheDirectory);
+
+                var imageMetadataList = new List<ImageMetadata>();
+
+                using (var connection = _context.CreateConnection())
+                {
+                    var objects = filteredObjects
+                        .Skip((page - 1) * pageSize)
+                        .Take(pageSize)
+                        .Distinct()
+                        .ToList();
+
+                    foreach (var s3Object in objects)
+                    {
+                        _logger.LogInformation($"Processing file: {s3Object.Key}");
+
+                        var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(SelectByNameSql,
+                            new { FileName = s3Object.Key, UserId = userId });
+
+                        if (cachedImage != null)
+                        {
+                            _logger.LogInformation($"Found cached metadata for file: {s3Object.Key}");
+                            imageMetadataList.Add(cachedImage);
+                        }
+                        else
+                        {
+                            var cacheFilePath = Path.Combine(cacheDirectory, s3Object.Key);
+
+                            if (!File.Exists(cacheFilePath))
+                            {
+                                _logger.LogInformation($"Downloading and caching file: {s3Object.Key}");
+                                var fileBytes = await DownloadFileAsync(s3Object.Key, userBucket);
+                                await File.WriteAllBytesAsync(cacheFilePath, fileBytes);
+                            }
+                            else
+                            {
+                                _logger.LogInformation($"File already cached: {s3Object.Key}");
+                            }
+
+                            var url = GenerateCachedFileUrl(s3Object.Key, userId);
+
+                            var newImageMetadata = new ImageMetadata
+                            {
+                                FileName = s3Object.Key,
+                                CachedFilePath = cacheFilePath,
+                                Url = url,
+                                CreatedAt = s3Object.LastModified,
+                                UserId = userId
+                            };
+
+                            await connection.ExecuteAsync(InsertSql, newImageMetadata);x
+                            imageMetadataList.Add(newImageMetadata);
+                        }
+                    }
+                }
+
+                var orderedImageMetadataList = imageMetadataList
+                    .OrderByDescending(im => im.CreatedAt)
+                    .ThenBy(im => im.FileName)
+                    .ToList();
+                fileList = orderedImageMetadataList.Select(im => im.Url).ToList();
+
+                int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+                _logger.LogInformation($"Returning {fileList.Count} files. Page {page} of {totalPages}.");
+
+                return new PaginatedList<string>
+                {
+                    Items = fileList,
+                    PageIndex = page,
+                    TotalPages = totalPages,
+                    SearchQuery = searchQuery
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Error encountered: '{e.Message}' when listing files");
+                throw;
             }
         }
-
-        var orderedImageMetadataList = imageMetadataList.OrderByDescending(im => im.CreatedAt).ToList();
-        fileList = orderedImageMetadataList.Select(im => im.Url).ToList();
-
-        int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
-
-        _logger.LogInformation($"Returning {fileList.Count} files. Page {page} of {totalPages}.");
-
-        return new PaginatedList<string>
-        {
-            Items = fileList,
-            PageIndex = page,
-            TotalPages = totalPages,
-            SearchQuery = searchQuery
-        };
-    }
-    catch (Exception e)
-    {
-        _logger.LogError($"Error encountered: '{e.Message}' when listing files");
-        throw;
-    }
-}
 
         public async Task<bool> DeleteFileFromBucketAsync(string fileName, string userId)
         {
@@ -254,7 +268,8 @@ public async Task<PaginatedList<string>> ListImagesAsync(string userId, int page
                 _logger.LogInformation($"Attempting to delete cached file: {fileName} for user: {userId}");
 
                 using var connection = _context.CreateConnection();
-                var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(SelectByNameSql, new { FileName = fileName, UserId = userId });
+                var cachedImage = await connection.QueryFirstOrDefaultAsync<ImageMetadata>(SelectByNameSql,
+                    new { FileName = fileName, UserId = userId });
 
                 if (cachedImage != null)
                 {
@@ -275,6 +290,7 @@ public async Task<PaginatedList<string>> ListImagesAsync(string userId, int page
                 throw;
             }
         }
+
         public async Task<bool> PurgeCacheAsync(string userId)
         {
             try
@@ -304,7 +320,8 @@ public async Task<PaginatedList<string>> ListImagesAsync(string userId, int page
             }
         }
 
-        private string GenerateModifiedFileName(string originalFileName, int width, int height, ImageModificationType type)
+        private string GenerateModifiedFileName(string originalFileName, int width, int height,
+            ImageModificationType type)
         {
             var fileExtension = Path.GetExtension(originalFileName);
             var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(originalFileName);
@@ -312,6 +329,7 @@ public async Task<PaginatedList<string>> ListImagesAsync(string userId, int page
 
             return $"{fileNameWithoutExtension}_{typeString}_w{width}_h{height}{fileExtension}";
         }
+
         private string GenerateCachedFileUrl(string fileName, string userId)
         {
             var url = $"https://image.john-group.org/cache/{userId}/{fileName}";
@@ -346,6 +364,7 @@ public async Task<PaginatedList<string>> ListImagesAsync(string userId, int page
 
             return userBucket;
         }
+
         private async Task<byte[]> DownloadFileAsync(string fileName, string bucketName)
         {
             try
