@@ -21,7 +21,9 @@ namespace VideoCrypt.Image.Api.Repositories
     {
         private readonly ApplicationDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
         private readonly ILogger<ApiKeyRepository> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        private readonly UserManager<IdentityUser> _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
+
+        private readonly UserManager<IdentityUser> _userManager =
+            userManager ?? throw new ArgumentNullException(nameof(userManager));
 
         public async Task<IEnumerable<ApiKey>> GetAllApiKeysAsync(ClaimsPrincipal userClaims)
         {
@@ -95,7 +97,7 @@ namespace VideoCrypt.Image.Api.Repositories
             try
             {
                 var timeNow = DateTime.UtcNow;
-                var apiKeyString = ApiKeyGenerator.GenerateApiKey(user.Id,timeNow);
+                var apiKeyString = ApiKeyGenerator.GenerateApiKey(user.Id, timeNow);
                 var apiKey = new ApiKey
                 {
                     Key = apiKeyString,
@@ -132,7 +134,8 @@ namespace VideoCrypt.Image.Api.Repositories
             {
                 _logger.LogInformation("Deleting API key with ID {Id} for user {UserId}", apiKey.Id, apiKey.UserId);
                 await connection.ExecuteAsync(sql, new { Id = apiKey.Id, UserId = apiKey.UserId });
-                _logger.LogInformation("API key with ID {Id} deleted successfully for user {UserId}", apiKey.Id, apiKey.UserId);
+                _logger.LogInformation("API key with ID {Id} deleted successfully for user {UserId}", apiKey.Id,
+                    apiKey.UserId);
             }
             catch (Exception ex)
             {
@@ -150,23 +153,37 @@ namespace VideoCrypt.Image.Api.Repositories
             }
 
             using var connection = _context.CreateConnection();
-            var sql = @"SELECT id, key, name, description, created_at, expire_at
-                        FROM api_keys
-                        WHERE user_id = @UserId
-                        ORDER BY id
-                        OFFSET @Offset
-                        LIMIT @Limit";
+            var sql = @"SELECT id AS Id,
+                       key AS Key,
+                       name AS Name,
+                       description AS Description,
+                       created_at AS CreatedAt,
+                       expire_at AS ExpireAt,
+                       user_id AS UserId
+                FROM api_keys
+                WHERE user_id = @UserId
+                ORDER BY id
+                OFFSET @Offset ROWS
+                FETCH NEXT @Limit ROWS ONLY";
 
             try
             {
                 _logger.LogInformation("Fetching paginated API keys for user {UserId}", user.Id);
-                var apiKeys = await connection.QueryAsync<ApiKey>(sql, new { UserId = user.Id, Offset = (pageNumber - 1) * pageSize, Limit = pageSize });
+
+                var apiKeys = await connection.QueryAsync<ApiKey>(sql,
+                    new { UserId = user.Id, Offset = (pageNumber - 1) * pageSize, Limit = pageSize });
+
                 var countSql = "SELECT COUNT(*) FROM api_keys WHERE user_id = @UserId";
                 var totalCount = await connection.ExecuteScalarAsync<int>(countSql, new { UserId = user.Id });
-                return new PaginatedList<ApiKey>(){
+
+                var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+                return new PaginatedList<ApiKey>
+                {
                     Items = apiKeys.ToList(),
-                    TotalPages = totalCount,
-                    PageIndex = pageNumber};
+                    TotalPages = totalPages,
+                    PageIndex = pageNumber
+                };
             }
             catch (Exception ex)
             {
@@ -174,5 +191,6 @@ namespace VideoCrypt.Image.Api.Repositories
                 throw;
             }
         }
+
     }
 }
