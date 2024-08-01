@@ -204,7 +204,7 @@ namespace VideoCrypt.Image.CashingApp.Repository
                                 UserId = userId
                             };
 
-                            await connection.ExecuteAsync(InsertSql, newImageMetadata);x
+                            await connection.ExecuteAsync(InsertSql, newImageMetadata);
                             imageMetadataList.Add(newImageMetadata);
                         }
                     }
