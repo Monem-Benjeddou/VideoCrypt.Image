@@ -1,21 +1,19 @@
 @model PaginatedList<ApiKey>
 
 @{
-    ViewData["Title"] = "API Keys";
+ViewData["Title"] = "API Keys";
 }
 
 <h2 class="col-6 tm-text-primary">
-    <span class="text-muted fw-light">Api key /</span> Dashboard
+    <span class="text-muted fw-light">API Key /</span> Dashboard
 </h2>
-
-<div class="card shadow-lg border-0 rounded-lg mt-4">
-    <div class="d-flex flex-row justify-content-between align-items-center p-3 bg-primary text-white">
-        <h5 class="card-header border-0 bg-primary text-white">API Keys</h5>
-        <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#basicModal">
-            Add API Key
-        </button>
-    </div>
-
+<div class="d-flex flex-row justify-content-between align-items-center p-3 bg-primary text-white mt-5 rounded-1 ">
+    <h5 class="card-header border-0 bg-primary text-white">API Keys</h5>
+    <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#addApiKeyModal">
+        Add API Key
+    </button>
+</div>
+<div class="card shadow-lg border-0 rounded-1 mt-4">
     <div class="table-responsive text-nowrap">
         <table class="table table-hover table-striped">
             <thead class="thead-dark">
@@ -31,20 +29,16 @@
             <tbody>
             @foreach (var item in Model.Items)
             {
-                <tr>
-                    <td>@item.Id</td>
-                    <td>@item.Key</td>
-                    <td>@item.Name</td>
-                    <td>@item.Description</td>
-                    <td>@item.CreatedAt</td>
-                    <td>
-                        <button type="button"
-                                class="btn btn-danger" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#deleteModal"
-                                data-url="@item.Id">Delete</button>
-                    </td>
-                </tr>
+            <tr>
+                <td>@item.Id</td>
+                <td>@item.Key</td>
+                <td>@item.Name</td>
+                <td>@item.Description</td>
+                <td>@item.CreatedAt</td>
+                <td>
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteApiKeyModal" data-url="@item.Id">Delete</button>
+                </td>
+            </tr>
             }
             </tbody>
         </table>
@@ -54,23 +48,23 @@
 <div class="mt-3 d-flex justify-content-between align-items-center">
     @if (Model.HasPreviousPage)
     {
-        <a class="btn btn-outline-primary" asp-action="Index" asp-route-pageIndex="@(Model.PageIndex - 1)">Previous</a>
+    <a class="btn btn-outline-primary" asp-action="Index" asp-route-pageIndex="@(Model.PageIndex - 1)">Previous</a>
     }
 
     <span>Page @Model.PageIndex of @Model.TotalPages</span>
-    
+
     @if (Model.HasNextPage)
     {
-        <a class="btn btn-outline-primary" asp-action="Index" asp-route-pageIndex="@(Model.PageIndex + 1)">Next</a>
+    <a class="btn btn-outline-primary" asp-action="Index" asp-route-pageIndex="@(Model.PageIndex + 1)">Next</a>
     }
 </div>
 
 @Html.Partial("_deleteModal")
-@Html.Partial("_AddApiKeyModal", new VideoCrypt.Image.Dashboard.Models.ApiKeyForCreation())
+@Html.Partial("_AddApiKeyModal", new ApiKeyForCreation())
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        var deleteModal = document.getElementById('deleteModal');
+        var deleteModal = document.getElementById('deleteApiKeyModal');
         deleteModal.addEventListener('show.bs.modal', function (event) {
             var button = event.relatedTarget;
             var apiKeyId = button.getAttribute('data-url');
@@ -79,29 +73,3 @@
         });
     });
 </script>
-
-<style>
-    .card-header {
-        font-size: 1.5rem;
-    }
-
-    .table-hover tbody tr:hover {
-        background-color: rgba(0, 0, 0, 0.075);
-    }
-
-    .btn-primary {
-        background-color: #007bff;
-        border-color: #007bff;
-    }
-
-    .btn-light {
-        background-color: #f8f9fa;
-        border-color: #f8f9fa;
-        color: #007bff;
-    }
-
-    .btn-light:hover {
-        background-color: #e2e6ea;
-        border-color: #dae0e5;
-    }
-</style>
