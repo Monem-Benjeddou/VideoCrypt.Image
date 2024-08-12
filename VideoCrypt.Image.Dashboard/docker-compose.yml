@@ -57,4 +57,4 @@ volumes:
 
 networks:
   imagecrypt-net:
-    driver: bridge
+    driver: host
