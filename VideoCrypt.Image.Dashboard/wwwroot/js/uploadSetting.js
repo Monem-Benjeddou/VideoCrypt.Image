@@ -36,7 +36,6 @@ Dropzone.options.myGreatDropzone = {
             let imagePreview = document.getElementById("dz-image");
             imagePreview.innerHTML = "";
             updatePreviewTemplate(file, file.name);
-            showModalWithFileDetails(file);
         });
 
         myDropzone.on("removedfile", function (file) {
@@ -59,8 +58,8 @@ function updatePreviewTemplate(file, filePath) {
         progressBar.remove();
     }
     if (previewElement) {
-        let shareLinkInput = previewElement.querySelector('.share-link-input');
-        let copyButton = previewElement.querySelector('.btn-copy');
+        let shareLinkInput = document.getElementById('share-link');
+        let copyButton = document.getElementById('copyLinkButton');
 
         fetch(`/Image/GenerateShareLink/${encodeURIComponent(file.upload.filename)}`)
             .then(response => response.json())
@@ -106,14 +105,3 @@ function generateFileNameWithExtension(originalName) {
     return generateQuickGuid() + (extension ? '.' + extension : '');
 }
 
-function showModalWithFileDetails(file) {
-    var modalBody = document.getElementById('detailsModalMessage');
-    modalBody.innerHTML = `
-        <p>File Name: ${file.name}</p>
-        <p>File Size: ${file.size} bytes</p>
-        <img src="${file.dataURL}" alt="${file.name}" style="max-width: 100%;">
-    `;
-
-    var detailsModal = new bootstrap.Modal(document.getElementById('detailsModal'));
-    detailsModal.show();
-}
