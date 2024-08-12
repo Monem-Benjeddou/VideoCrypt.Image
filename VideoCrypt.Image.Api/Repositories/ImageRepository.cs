@@ -84,7 +84,7 @@ namespace VideoCrypt.Image.Api.Repositories
             return imageUrl;
         }
 
-        public async Task<ImageResponse> UploadFileAsync(IFormFile formFile, ClaimsPrincipal user)
+        public async Task<ImageResponse> UploadFileAsync(IFormFile formFile,CancellationToken cancellationToken, ClaimsPrincipal user)
         {
             var userId = await GenerateBucketName(user);
             var userBucket = await GetUserBucketAsync(userId);
@@ -106,7 +106,7 @@ namespace VideoCrypt.Image.Api.Repositories
             try
             {
                 using var memoryStream = new MemoryStream();
-                await formFile.CopyToAsync(memoryStream);
+                await formFile.CopyToAsync(memoryStream, cancellationToken);
                 memoryStream.Seek(0, SeekOrigin.Begin);
 
                 var client = GetS3Client();
@@ -119,7 +119,7 @@ namespace VideoCrypt.Image.Api.Repositories
                 };
 
                 _logger.LogInformation("Uploading file {FileName} to bucket {BucketName}", fileName, userBucket);
-                var response = await client.PutObjectAsync(request);
+                var response = await client.PutObjectAsync(request, cancellationToken);
 
                 stopwatch.Stop();
 

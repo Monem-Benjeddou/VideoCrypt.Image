@@ -23,13 +23,13 @@ namespace VideoCrypt.Image.Api.Controller
             userManager ?? throw new ArgumentNullException(nameof(userManager));
 
         [HttpPost("upload")]
-        public async Task<IActionResult> Upload([FromForm] IFormFile? file)
+        public async Task<IActionResult> Upload([FromForm] IFormFile? file, CancellationToken cancellationToken)
         {
             try
             {
                 if (file == null)
                     return BadRequest("File is null.");
-                var imageResponse = await _imageRepository.UploadFileAsync(file, User);
+                var imageResponse = await _imageRepository.UploadFileAsync(file,cancellationToken, User);
 
                 return Ok(imageResponse);
             }
