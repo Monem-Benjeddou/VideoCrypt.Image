@@ -56,7 +56,7 @@ namespace VideoCrypt.Image.Api.Repositories
             }
         }
 
-        public async Task<ApiKey> GetApiKeyByIdAsync(int id, ClaimsPrincipal userClaims)
+        public async Task<ApiKey?> GetApiKeyByIdAsync(int id, ClaimsPrincipal userClaims)
         {
             var user = await _userManager.GetUserAsync(userClaims);
             if (user == null)
@@ -104,13 +104,15 @@ namespace VideoCrypt.Image.Api.Repositories
                     Name = key.Name,
                     Description = key.Description,
                     CreatedAt = timeNow,
-                    ExpireAt = key.ExpireAt ?? new DateTime(timeNow.Year, timeNow.Month + 1, timeNow.Day),
+                    ExpireAt = key.ExpireAt ,
                     UserId = user.Id
                 };
                 using var connection = _context.CreateConnection();
-                var sql = @"INSERT INTO api_keys (key, name, description, created_at, expire_at, user_id) 
-                            VALUES (@Key, @Name, @Description, @CreatedAt, @ExpireAt, @UserId) 
-                            RETURNING id";
+                var sql = $"""
+                           INSERT INTO api_keys (key, name, description, created_at, expire_at, user_id) 
+                                                       VALUES (@Key, @Name, @Description, @CreatedAt, @ExpireAt, @UserId) 
+                                                       RETURNING id
+                           """;
 
                 _logger.LogInformation("Creating a new API key for user {UserId}", apiKey.UserId);
                 var id = await connection.ExecuteScalarAsync<int>(sql, apiKey);

@@ -33,7 +33,10 @@ Dropzone.options.myGreatDropzone = {
         });
 
         myDropzone.on("success", function (file, response) {
+            let imagePreview = document.getElementById("dz-image");
+            imagePreview.innerHTML = "";
             updatePreviewTemplate(file, file.name);
+            showModalWithFileDetails(file);
         });
 
         myDropzone.on("removedfile", function (file) {
@@ -41,7 +44,7 @@ Dropzone.options.myGreatDropzone = {
             if (dropZone) {
                 dropZone.style.removeProperty('border');
             }
-            let shareLink = document.querySelector("dz-share-link");
+            let shareLink = document.querySelector(".dz-share-link");
             if (shareLink) {
                 shareLink.innerHTML = '';
             }
@@ -87,7 +90,6 @@ function copyToClipboard(event, text) {
 }
 
 function generateFileNameWithExtension(originalName) {
-    // Function to extract the file extension
     function getFileExtension(filename) {
         const lastDotIndex = filename.lastIndexOf('.');
         return (lastDotIndex === -1 || lastDotIndex === filename.length - 1)
@@ -95,7 +97,6 @@ function generateFileNameWithExtension(originalName) {
             : filename.substring(lastDotIndex + 1);
     }
 
-    // Generate a unique GUID
     function generateQuickGuid() {
         return Math.random().toString(36).substring(2, 15) +
             Math.random().toString(36).substring(2, 15);
@@ -103,4 +104,16 @@ function generateFileNameWithExtension(originalName) {
 
     let extension = getFileExtension(originalName);
     return generateQuickGuid() + (extension ? '.' + extension : '');
+}
+
+function showModalWithFileDetails(file) {
+    var modalBody = document.getElementById('detailsModalMessage');
+    modalBody.innerHTML = `
+        <p>File Name: ${file.name}</p>
+        <p>File Size: ${file.size} bytes</p>
+        <img src="${file.dataURL}" alt="${file.name}" style="max-width: 100%;">
+    `;
+
+    var detailsModal = new bootstrap.Modal(document.getElementById('detailsModal'));
+    detailsModal.show();
 }

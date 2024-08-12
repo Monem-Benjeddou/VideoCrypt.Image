@@ -1,20 +1,20 @@
 @{
-    ViewData["Title"] = "File Upload";
+ViewData["Title"] = "File Upload";
 }
 <div>
-    <div  class="container d-flex flex-column justify-content-center">
-        <form  id="my-great-dropzone" class="dropzone align-self-center" style="overflow: hidden;"
-               action="/FileUpload/Upload" method="post" enctype="multipart/form-data">
+    <div class="container d-flex flex-column justify-content-center">
+        <form id="my-great-dropzone" class="dropzone align-self-center" style="overflow: hidden;"
+              action="/FileUpload/Upload" method="post" enctype="multipart/form-data">
             <div class="fallback">
-                <input type="file" name="file"/>
-                <input type="submit" value="Upload!">
+                <input type="file" name="file" />
+                <input type="submit" value="Upload!" />
             </div>
         </form>
         <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                        <h5 class="modal-title" id="errorModalLabel">File Details</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body" id="errorModalMessage">
@@ -55,10 +55,10 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #f8f9fa; /* Light background for the share link section */
+            background-color: #f8f9fa;
             padding: 15px;
             border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for a raised effect */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
         .dz-preview .dz-details .dz-share-link .share-link-input {
@@ -76,16 +76,42 @@
             padding: 10px 20px;
             border: none;
             border-radius: 5px;
-            background-color: #007bff; /* Bootstrap primary color */
+            background-color: #007bff;
             color: #fff;
             cursor: pointer;
             font-size: 14px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for a raised effect */
-            transition: background-color 0.3s, box-shadow 0.3s; /* Smooth transition for hover effects */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s, box-shadow 0.3s;
         }
+
         .dz-preview .dz-details .dz-share-link .btn-copy:hover {
-            background-color: #0056b3; /* Darker shade for hover */
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Increased shadow on hover */
+            background-color: #0056b3;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
     </style>
+    <script src="~/js/dropzone.min.js" asp-append-version="true"></script>
+    <script src="~/js/uploadSetting.js" asp-append-version="true"></script>
+    <!-- Add this script after your existing scripts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var errorModal = document.getElementById('errorModal');
+            errorModal.addEventListener('hidden.bs.modal', function () {
+                var lastFile = Dropzone.forElement('#my-great-dropzone').files.slice(-1)[0];
+                if (lastFile) {
+                    Dropzone.forElement('#my-great-dropzone').removeFile(lastFile);
+                }
+            });
+
+            // Copy link functionality
+            document.querySelectorAll('.btn-copy').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var input = btn.previousElementSibling;
+                    input.select();
+                    document.execCommand('copy');
+                    alert('Link copied to clipboard!');
+                });
+            });
+        });
+    </script>
+
 </div>

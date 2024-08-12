@@ -64,7 +64,7 @@ ViewData["Title"] = "API Keys";
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        var deleteModal = document.getElementById('deleteApiKeyModal');
+        var deleteModal = document.getElementById('deleteModal');
         deleteModal.addEventListener('show.bs.modal', function (event) {
             var button = event.relatedTarget;
             var apiKeyId = button.getAttribute('data-url');

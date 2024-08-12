@@ -271,8 +271,8 @@ namespace VideoCrypt.Image.Api.Repositories
         private async Task<string> GetUserBucketAsync(string userId)
         {
             var bucketPrefix = $"{userId}";
-            var _s3Client = GetS3Client();
-            var listBucketsResponse = await _s3Client.ListBucketsAsync();
+            using var s3Client = GetS3Client();
+            var listBucketsResponse = await s3Client.ListBucketsAsync();
 
             var userBucket = listBucketsResponse.Buckets
                 .FirstOrDefault(b => b.BucketName.StartsWith(bucketPrefix));
@@ -285,7 +285,7 @@ namespace VideoCrypt.Image.Api.Repositories
                 BucketName = bucketPrefix
             };
 
-            var createBucketResponse = await _s3Client.PutBucketAsync(createBucketRequest);
+            var createBucketResponse = await s3Client.PutBucketAsync(createBucketRequest);
 
             if (createBucketResponse.HttpStatusCode != HttpStatusCode.OK)
             {

@@ -15,7 +15,7 @@ builder.Services.AddCors(options =>
         builder =>
         {
             //http://51.38.80.38
-            builder.WithOrigins("http://51.38.80.38:8080")
+            builder.WithOrigins("https://dashboard.john-group.org/")
                 .WithOrigins("https://localhost:8080")
                 .WithOrigins("http://localhost:8080")
                 .AllowAnyMethod()

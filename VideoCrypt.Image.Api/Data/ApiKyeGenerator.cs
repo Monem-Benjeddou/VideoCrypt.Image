@@ -5,7 +5,7 @@ namespace VideoCrypt.Image.Api.Data;
 
 public static class ApiKeyGenerator
 { 
-    public static string GenerateApiKey(string userId,DateTime time)
+    public static string GenerateApiKey(string userId, DateTime time)
     {
         var secretKey = Environment.GetEnvironmentVariable("api_secrete_key");
 

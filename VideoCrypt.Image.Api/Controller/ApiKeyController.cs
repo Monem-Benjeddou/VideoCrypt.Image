@@ -10,12 +10,10 @@ namespace VideoCrypt.Image.Api.Controller
     [ApiController]
     [Route("api/[controller]")]
     public class ApiKeyController(
-        IApiKeyRepository apiKeyRepository,
-        ILogger<ApiKeyController> logger)
+        IApiKeyRepository _apiKeyRepository,
+        ILogger<ApiKeyController> _logger)
         : ControllerBase
     {
-        private readonly IApiKeyRepository _apiKeyRepository = apiKeyRepository ?? throw new ArgumentNullException(nameof(apiKeyRepository));
-        private readonly ILogger<ApiKeyController> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         [HttpGet("all")]
         public async Task<ActionResult<IEnumerable<ApiKey>>> GetAllApiKeys()
@@ -51,7 +49,7 @@ namespace VideoCrypt.Image.Api.Controller
         }
 
         [HttpPost]
-        public async Task<ActionResult<ApiKey>> CreateApiKey([FromBody] ApiKeyForCreation key)
+        public async Task<ActionResult<ApiKey>> CreateApiKey([FromBody] ApiKeyForCreation? key)
         {
             if (key == null)
             {

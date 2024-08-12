@@ -9,7 +9,7 @@ namespace VideoCrypt.Image.Api.Repositories
     public interface IApiKeyRepository
     {
         Task<IEnumerable<ApiKey>> GetAllApiKeysAsync(ClaimsPrincipal userClaims);
-        Task<ApiKey> GetApiKeyByIdAsync(int id, ClaimsPrincipal userClaims);
+        Task<ApiKey?> GetApiKeyByIdAsync(int id, ClaimsPrincipal userClaims);
         Task<ApiKey> CreateApiKeyAsync(ApiKeyForCreation key, ClaimsPrincipal userClaims);
         Task DeleteApiKeyAsync(ApiKey apiKey);
         Task<PaginatedList<ApiKey>> GetApiKeysPaginatedAsync(ClaimsPrincipal userClaims, int pageNumber, int pageSize);
