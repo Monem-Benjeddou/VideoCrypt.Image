@@ -3,7 +3,7 @@ services:
   imagecrypt-api:
     build:
       context: ..
-      dockerfile: imagecrypt.Image.Api/Dockerfile
+      dockerfile: VideoCrypt.Image.Api/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - access_key=Qqt3KMXNlK4iCKqPhgEd
@@ -16,7 +16,7 @@ services:
   imagecrypt-caching-app:
     build:
       context: ..
-      dockerfile: imagecrypt.Image.CashingApp/Dockerfile
+      dockerfile: VideoCrypt.Image.CashingApp/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - access_key=Qqt3KMXNlK4iCKqPhgEd
