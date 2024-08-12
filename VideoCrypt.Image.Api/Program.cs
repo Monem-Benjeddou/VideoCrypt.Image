@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using VideoCrypt.Image.Api.Filters;
 using VideoCrypt.Image.Api.Repositories;
 using VideoCrypt.Image.Data;
 
@@ -67,6 +68,7 @@ builder.Services.AddSwaggerGen(setup =>
     {
         { jwtSecurityScheme, Array.Empty<string>() }
     });
+    setup.OperationFilter<ExcludeRegisterOperationFilter>();
 });
 
 var app = builder.Build();

@@ -58,6 +58,10 @@ namespace VideoCrypt.Image.Api.Repositories
 
         public async Task<ApiKey?> GetApiKeyByIdAsync(int id, ClaimsPrincipal userClaims)
         {
+            if (id < 0)
+            {
+                throw new Exception("Id should be above 0");
+            }
             var user = await _userManager.GetUserAsync(userClaims);
             if (user == null)
             {
@@ -129,6 +133,10 @@ namespace VideoCrypt.Image.Api.Repositories
 
         public async Task DeleteApiKeyAsync(ApiKey apiKey)
         {
+            if (apiKey.Id < 0)
+            {
+                throw new Exception("Id should be above 0");
+            }
             using var connection = _context.CreateConnection();
             var sql = "DELETE FROM api_keys WHERE id = @Id AND user_id = @UserId";
 
