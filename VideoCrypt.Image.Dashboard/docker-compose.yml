@@ -1,10 +1,9 @@
-version: '3.8'
 
 services:
-  videocrypt-api:
+  imagecrypt-api:
     build:
       context: ..
-      dockerfile: VideoCrypt.Image.Api/Dockerfile
+      dockerfile: imagecrypt.Image.Api/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - access_key=Qqt3KMXNlK4iCKqPhgEd
@@ -12,33 +11,32 @@ services:
       - service_url=http://10.13.111.3
       - api_secrete_key=GoCdqzvvbJWyy2F3J3mm/2cXIufm5+KEeeeGRLiHg8w=
     networks:
-      - videocrypt-net
+      - imagecrypt-net
 
-  videocrypt-caching-app:
+  imagecrypt-caching-app:
     build:
       context: ..
-      dockerfile: VideoCrypt.Image.CashingApp/Dockerfile
+      dockerfile: imagecrypt.Image.CashingApp/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - access_key=Qqt3KMXNlK4iCKqPhgEd
       - secret_key=Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6
       - service_url=http://10.13.111.3
     volumes:
-      - videocryptimage_cache_volume:/cache
+      - imagecryptimage_cache_volume:/cache
     deploy:
       replicas: 3
     networks:
-      - videocrypt-net
-    # Note: You might not need to specify a port here if NGINX will handle routing.
+      - imagecrypt-net
 
-  videocrypt-dashboard:
+  imagecrypt-dashboard:
     build:
       context: .
       dockerfile: Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     networks:
-      - videocrypt-net
+      - imagecrypt-net
 
   nginx:
     build:
@@ -47,17 +45,16 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - videocrypt-api
-      - videocrypt-caching-app
-      - videocrypt-dashboard
+      - imagecrypt-api
+      - imagecrypt-caching-app
+      - imagecrypt-dashboard
     networks:
-      - videocrypt-net
-    # No need to specify port here if internal communication is handled by Docker.
+      - imagecrypt-net
 
 volumes:
-  videocryptimage_cache_volume:
+  imagecryptimage_cache_volume:
     driver: local
 
 networks:
-  videocrypt-net:
+  imagecrypt-net:
     driver: bridge
