@@ -27,11 +27,11 @@ services:
       replicas: 3
     networks:
       - imagecrypt-net
-  ports:
-    - "4001"
-    - "4002"
-    - "4003"
-  
+    ports:
+      - "4001:4001"
+      - "4002:4002"
+      - "4004:4003"  # Fixed mapping
+
   imagecrypt-dashboard:
     build:
       context: .
