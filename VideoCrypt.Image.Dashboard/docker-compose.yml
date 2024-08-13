@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   imagecrypt-api:
     build:
@@ -9,8 +11,10 @@ services:
       - secret_key=Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6
       - service_url=http://10.13.111.3
       - api_secrete_key=GoCdqzvvbJWyy2F3J3mm/2cXIufm5+KEeeeGRLiHg8w=
+    ports:
+      - "7003:7003"
     networks:
-      - imagecrypt-net
+      - default
 
   imagecrypt-caching-app:
     build:
@@ -21,12 +25,15 @@ services:
       - access_key=Qqt3KMXNlK4iCKqPhgEd
       - secret_key=Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6
       - service_url=http://10.13.111.3
+      - ASPNETCORE_URLS=http://*:4000
     volumes:
       - imagecryptimage_cache_volume:/cache
     deploy:
       replicas: 3
+    ports:
+      - "4000"  # Removed, since using network_mode
     networks:
-      - imagecrypt-net
+      - default
 
   imagecrypt-dashboard:
     build:
@@ -35,7 +42,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     networks:
-      - imagecrypt-net
+      - default
 
   nginx:
     build:
@@ -48,12 +55,11 @@ services:
       - imagecrypt-caching-app
       - imagecrypt-dashboard
     networks:
-      - imagecrypt-net
+      - default
 
 volumes:
   imagecryptimage_cache_volume:
     driver: local
 
 networks:
-  imagecrypt-net:
-    driver: bridge 
+  default:
