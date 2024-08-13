@@ -28,13 +28,42 @@ services:
       - ASPNETCORE_URLS=http://*:4000
     volumes:
       - imagecryptimage_cache_volume:/cache
-    deploy:
-      replicas: 3
     ports:
-      - "4000"  # Removed, since using network_mode
+      - "4000"  
     networks:
       - default
-
+  imagecrypt-caching-app1:
+    build:
+      context: ..
+      dockerfile: VideoCrypt.Image.CashingApp/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - access_key=Qqt3KMXNlK4iCKqPhgEd
+      - secret_key=Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6
+      - service_url=http://10.13.111.3
+      - ASPNETCORE_URLS=http://*:4001
+    volumes:
+      - imagecryptimage_cache_volume:/cache
+    ports:
+      - "4001"
+    networks:
+      - default
+  imagecrypt-caching-app2:
+    build:
+      context: ..
+      dockerfile: VideoCrypt.Image.CashingApp/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - access_key=Qqt3KMXNlK4iCKqPhgEd
+      - secret_key=Kncx7QKlHyaN1rmbRRrAqDvDLGhGt8IAPdwhyjg6
+      - service_url=http://10.13.111.3
+      - ASPNETCORE_URLS=http://*:4002
+    volumes:
+      - imagecryptimage_cache_volume:/cache
+    ports:
+      - "4002"
+    networks:
+      - default
   imagecrypt-dashboard:
     build:
       context: .
