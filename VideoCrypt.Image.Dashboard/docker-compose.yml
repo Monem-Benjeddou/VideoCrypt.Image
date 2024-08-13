@@ -1,4 +1,3 @@
-
 services:
   imagecrypt-api:
     build:
@@ -61,4 +60,4 @@ volumes:
 
 networks:
   imagecrypt-net:
-    driver: host
+    driver: bridge  # Change from 'host' to 'bridge'
