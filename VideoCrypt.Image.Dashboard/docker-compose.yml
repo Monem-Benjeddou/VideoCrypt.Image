@@ -27,11 +27,11 @@ services:
       replicas: 3
     networks:
       - imagecrypt-net
-    ports:
-      - "4001:4001"
-      - "4002:4002"
-      - "4003:4003"
-
+  ports:
+    - "4001"
+    - "4002"
+    - "4003"
+  
   imagecrypt-dashboard:
     build:
       context: .
@@ -60,4 +60,4 @@ volumes:
 
 networks:
   imagecrypt-net:
-    driver: bridge  # Change from 'host' to 'bridge'
+    network_mode: host
