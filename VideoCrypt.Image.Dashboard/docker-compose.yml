@@ -43,7 +43,7 @@ services:
       - service_url=http://10.13.111.3
       - ASPNETCORE_URLS=http://*:4001
     volumes:
-      - imagecryptimage_cache_volume:/cache
+      - imagecryptimage_cache_volume_1:/cache
     ports:
       - "4001"
     networks:
@@ -59,7 +59,7 @@ services:
       - service_url=http://10.13.111.3
       - ASPNETCORE_URLS=http://*:4002
     volumes:
-      - imagecryptimage_cache_volume:/cache
+      - imagecryptimage_cache_volume_2:/cache
     ports:
       - "4002"
     networks:
@@ -86,9 +86,12 @@ services:
     networks:
       - default
 
+networks:
+  default:
 volumes:
   imagecryptimage_cache_volume:
     driver: local
-
-networks:
-  default:
+  imagecryptimage_cache_volume_1:
+    driver: local
+  imagecryptimage_cache_volume_2:
+    driver: local
