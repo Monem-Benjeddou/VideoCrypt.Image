@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   imagecrypt-api:
@@ -29,9 +28,10 @@ services:
     volumes:
       - imagecryptimage_cache_volume:/cache
     ports:
-      - "4000"  
+      - "4000:4000"
     networks:
       - default
+
   imagecrypt-caching-app1:
     build:
       context: ..
@@ -45,9 +45,10 @@ services:
     volumes:
       - imagecryptimage_cache_volume_1:/cache
     ports:
-      - "4001"
+      - "4001:4001"
     networks:
       - default
+
   imagecrypt-caching-app2:
     build:
       context: ..
@@ -61,12 +62,13 @@ services:
     volumes:
       - imagecryptimage_cache_volume_2:/cache
     ports:
-      - "4002"
+      - "4002:4002"
     networks:
       - default
+
   imagecrypt-dashboard:
     build:
-      context: .
+      context: ..
       dockerfile: Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
@@ -82,12 +84,15 @@ services:
     depends_on:
       - imagecrypt-api
       - imagecrypt-caching-app
+      - imagecrypt-caching-app1
+      - imagecrypt-caching-app2
       - imagecrypt-dashboard
     networks:
       - default
 
 networks:
   default:
+
 volumes:
   imagecryptimage_cache_volume:
     driver: local
