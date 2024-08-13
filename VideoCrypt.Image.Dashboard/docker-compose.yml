@@ -28,10 +28,6 @@ services:
       replicas: 3
     networks:
       - imagecrypt-net
-    ports:
-      - "4001:4001"
-      - "4002:4002"
-      - "4003:4003"
 
   imagecrypt-dashboard:
     build:
