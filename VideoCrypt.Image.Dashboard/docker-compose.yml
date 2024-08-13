@@ -68,7 +68,7 @@ services:
 
   imagecrypt-dashboard:
     build:
-      context: ..
+      context: .
       dockerfile: Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
